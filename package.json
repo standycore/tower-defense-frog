@@ -17,6 +17,7 @@
     "vite": "^4.0.0"
   },
   "dependencies": {
+    "@pixi/layers": "^2.0.0",
     "pixi.js": "^7.0.4"
   }
 }

@@ -2,7 +2,10 @@ import './style.css';
 
 import { World } from './lib/world';
 
-import { Application, Graphics } from 'pixi.js';
+import { Application, ObservablePoint } from 'pixi.js';
+import { Stage, Layer } from '@pixi/layers';
+import { GroupMap } from './lib/groupMap';
+import { FixedEngine } from './lib/engine';
 
 async function main() {
     // The application will create a renderer using WebGL, if possible,
@@ -14,38 +17,70 @@ async function main() {
     // can then insert into the DOM
     document.body.appendChild(app.view);
 
-    const grid = new World();
+    // replace the app stage with a custom stage from @pixi/layers
+    app.stage = new Stage();
 
-    grid.set(0, 0, 'a');
-    grid.set(1, 0, 'a');
-    grid.set(0, 2, 'a');
-    grid.set(3, 4, 'a');
-    grid.set(2, 6, 'a');
+    // sorts layers (probably optional)
+    app.stage.sortableChildren = true;
 
-    const graphics = new Graphics();
-
-    grid.forEach((value, x, y) => {
-        graphics.drawRect(x * 20, y * 20, 20, 20);
+    /**
+     * gets the global groupMap, which maps the name of a group to a group object
+     * the group is created in the group map
+     * this is part of @pixi/layers
+     */
+    const groupMap = GroupMap.groupMap;
+    groupMap.create('default', 0, (object) => {
+        object.zOrder = -object.y;
+    });
+    groupMap.create('hover', 1, (object) => {
+        object.zOrder = -object.y;
     });
 
-    grid.cellSize.set(40, 40);
+    /**
+     * creates a layer for each group, and adds the layer to the stage
+     * this is necessary for objects using the group render method to be visible
+     */
+    groupMap.forEach((group) => {
+        app.stage.addChild(new Layer(group));
+    });
 
-    app.stage.addChild(graphics);
+    /**
+     * creates a new World, which extends PIXI.Container
+     * this is where game related objects should be added
+     */
+    const world = new World(app);
+
+    // sets the cell size of the world
+    world.cellSize.set(50, 50);
+
+    // add the world to the stage to be rendered
+    app.stage.addChild(world);
+
+    const engine = new FixedEngine();
+    engine.onUpdate((ticks) => {
+
+    });
+    engine.start();
+
+    /**
+     * creates PIXI observable points for the canvas mouse position
+     * this can be used as a global position, not for the world but for the canvas itself
+     * might change to normal point later
+     */
+    const canvasMousePosition = new ObservablePoint(() => {}, this);
+    const canvasMouseRelative = new ObservablePoint(() => {}, this);
+    app.view.addEventListener('mousemove', (e) => {
+        canvasMousePosition.x = e.clientX || e.x || 0;
+        canvasMousePosition.y = e.clientY || e.y || 0;
+        canvasMouseRelative.x = e.movementX;
+        canvasMouseRelative.y = e.movementY;
+    });
 
     // let time = 0;
-    // Listen for frame updates
-    app.ticker.add((delta) => {
-        // time += delta;
-
-        graphics.clear();
-
-        graphics.lineStyle(1, 0xffffff);
-
-        // grid.drawGrid(graphics, Math.sin(time * 0.1) * 10, Math.cos(time * 0.1) * 10, app.screen.width, app.screen.height);
-        grid.drawGrid(graphics, 0, 0, app.screen.width, app.screen.height);
-    });
-
-    return 'solemthing';
+    // // Listen for frame updates
+    // app.ticker.add((delta) => {
+    //     time += delta;
+    // });
 }
 
 main();
