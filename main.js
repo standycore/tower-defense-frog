@@ -58,7 +58,7 @@ async function main() {
 
     const engine = new FixedEngine();
     engine.onUpdate((ticks) => {
-
+        // world.camera.zoom = (Math.sin(ticks * 0.01) + 1) * 0.5;
     });
     engine.start();
 
