@@ -2,7 +2,7 @@ import './style.css';
 
 import { World } from './lib/world';
 
-import { Application, ObservablePoint } from 'pixi.js';
+import { Application, Graphics, ObservablePoint } from 'pixi.js';
 import { Stage, Layer } from '@pixi/layers';
 import { GroupMap } from './lib/groupMap';
 import { FixedEngine } from './lib/engine';
@@ -81,6 +81,17 @@ async function main() {
     // app.ticker.add((delta) => {
     //     time += delta;
     // });
+
+    // creates path
+    const path = world.createPath(-4, 4);
+    const pathGraphics = new Graphics();
+    // pathGraphics.clear();
+    pathGraphics.lineStyle(2, 0xFF0000);
+    path.forEach((point) => {
+        pathGraphics.drawRect(point.x * world.cellSize.x, point.y * world.cellSize.y, 5, 5);
+    });
+    world.addChild(pathGraphics);
+    // pathGraphics.parentGroup = groupMap.get('hover');
 }
 
 main();
