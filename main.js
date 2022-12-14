@@ -85,11 +85,16 @@ async function main() {
     // creates path
     const path = world.createPath(-4, 4);
     const pathGraphics = new Graphics();
-    // pathGraphics.clear();
-    pathGraphics.lineStyle(2, 0xFF0000);
+    pathGraphics.lineStyle(1, 0xFFFFFF);
+    pathGraphics.beginFill(0xFFFFFF);
     path.forEach((point) => {
-        pathGraphics.drawRect(point.x * world.cellSize.x, point.y * world.cellSize.y, 5, 5);
+        // pathGraphics.drawCircle(point.x * world.cellSize.x, point.y * world.cellSize.y, 5);
+        pathGraphics.drawRect(
+            (point.x * world.cellSize.x) - (world.cellSize.x / 2),
+            (point.y * world.cellSize.y) - (world.cellSize.y / 2),
+            world.cellSize.x, world.cellSize.y);
     });
+    pathGraphics.endFill();
     world.addChild(pathGraphics);
     // pathGraphics.parentGroup = groupMap.get('hover');
 }
