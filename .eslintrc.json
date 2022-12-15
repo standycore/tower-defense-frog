@@ -24,6 +24,8 @@
             "anonymous": "never",
             "named": "never",
             "asyncArrow": "always"
-        }]
+        }],
+        // padding within blocks such as classes, functions, etc
+        "padded-blocks": ["error", "always"]
     }
 }
