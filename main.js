@@ -2,12 +2,13 @@ import './style.css';
 
 import { World } from './lib/world';
 
-import { Application, Graphics, ObservablePoint } from 'pixi.js';
+import { Application, Container, Graphics, ObservablePoint, Point, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { Stage, Layer } from '@pixi/layers';
 import { GroupMap } from './lib/groupMap';
 import { FixedEngine } from './lib/engine';
 
 async function main() {
+
     // The application will create a renderer using WebGL, if possible,
     // with a fallback to a canvas render. It will also setup the ticker
     // and the root stage PIXI.Container
@@ -15,7 +16,7 @@ async function main() {
 
     // The application will create a canvas element for you that you
     // can then insert into the DOM
-    document.body.appendChild(app.view);
+    document.querySelector('.canvas-container').appendChild(app.view);
 
     // replace the app stage with a custom stage from @pixi/layers
     app.stage = new Stage();
@@ -30,10 +31,14 @@ async function main() {
      */
     const groupMap = GroupMap.groupMap;
     groupMap.create('default', 0, (object) => {
+
         object.zOrder = -object.y;
+
     });
     groupMap.create('hover', 1, (object) => {
+
         object.zOrder = -object.y;
+
     });
 
     /**
@@ -41,7 +46,9 @@ async function main() {
      * this is necessary for objects using the group render method to be visible
      */
     groupMap.forEach((group) => {
+
         app.stage.addChild(new Layer(group));
+
     });
 
     /**
@@ -70,10 +77,12 @@ async function main() {
     const canvasMousePosition = new ObservablePoint(() => {}, this);
     const canvasMouseRelative = new ObservablePoint(() => {}, this);
     app.view.addEventListener('mousemove', (e) => {
+
         canvasMousePosition.x = e.clientX || e.x || 0;
         canvasMousePosition.y = e.clientY || e.y || 0;
         canvasMouseRelative.x = e.movementX;
         canvasMouseRelative.y = e.movementY;
+
     });
 
     // let time = 0;
@@ -83,20 +92,95 @@ async function main() {
     // });
 
     // creates path
-    const path = world.createPath(-4, 4);
+
     const pathGraphics = new Graphics();
-    pathGraphics.lineStyle(1, 0xFFFFFF);
-    pathGraphics.beginFill(0xFFFFFF);
-    path.forEach((point) => {
-        // pathGraphics.drawCircle(point.x * world.cellSize.x, point.y * world.cellSize.y, 5);
-        pathGraphics.drawRect(
-            (point.x * world.cellSize.x) - (world.cellSize.x / 2),
-            (point.y * world.cellSize.y) - (world.cellSize.y / 2),
-            world.cellSize.x, world.cellSize.y);
-    });
-    pathGraphics.endFill();
     world.addChild(pathGraphics);
+
+    const pathTexture = Texture.from('https://picsum.photos/50');
+    await new Promise((resolve) => {
+
+        pathTexture.baseTexture.on('loaded', () => {
+
+            resolve();
+
+        });
+
+    });
+
+    let level;
+    function generatePath() {
+
+        const path = world.createPath(-4, 4, new Point(0, -1));
+
+        let maxX = 0;
+        let minX = 0;
+        let maxY = 0;
+        let minY = 0;
+
+        pathGraphics.clear();
+        let i = 0;
+        path.forEach((point) => {
+
+            const color = (0xFF0000) | (0xFF00 * (i / path.size)) | (0xFF);
+            i++;
+            pathGraphics.beginFill(color);
+
+            pathGraphics.drawRect(
+                (point.x * world.cellSize.x) - (world.cellSize.x / 2),
+                (point.y * world.cellSize.y) - (world.cellSize.y / 2),
+                world.cellSize.x, world.cellSize.y
+            );
+
+            maxX = Math.max(point.x, maxX);
+            minX = Math.min(point.x, minX);
+            maxY = Math.max(point.y, maxY);
+            minY = Math.min(point.y, minY);
+
+            // world.addChild(sprite);
+
+        });
+        pathGraphics.endFill();
+
+        const renderTexture = RenderTexture.create({ width: (maxX - minX + 1) * world.cellSize.x, height: (maxY - minY + 1) * world.cellSize.y });
+        // if (levelContainer) {
+        //     levelContainer.destroy();
+        // }
+        const levelContainer = new Container();
+
+        path.forEach((point) => {
+
+            const sprite = Sprite.from(pathTexture);
+            // sprite.anchor.set(0.5);
+            sprite.position.x = ((point.x - minX) * world.cellSize.x);
+            sprite.position.y = ((point.y - minY) * world.cellSize.y);
+            levelContainer.addChild(sprite);
+
+        });
+
+        path.clear();
+
+        app.renderer.render(levelContainer, { renderTexture });
+
+        if (level) {
+
+            level.destroy();
+
+        }
+        level = Sprite.from(renderTexture);
+        level.position.set(
+            (minX - 0.5) * world.cellSize.x,
+            (minY - 0.5) * world.cellSize.y
+        );
+        world.addChild(level);
+
+    }
+
+    // world.addChild(levelContainer);
+
+    document.querySelector('#generate-path').addEventListener('click', generatePath);
+
     // pathGraphics.parentGroup = groupMap.get('hover');
+
 }
 
 main();
