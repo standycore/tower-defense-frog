@@ -2,10 +2,12 @@ import './style.css';
 
 import { World } from '$/world';
 
-import { Application, Container, Graphics, ObservablePoint, Point, RenderTexture, Sprite, Texture } from 'pixi.js';
+import { Application, Container, Graphics, ObservablePoint, Point, RenderTexture, SCALE_MODES, Sprite, Texture } from 'pixi.js';
 import { Stage, Layer } from '@pixi/layers';
 import { GroupMap } from '$/groupMap';
 import { FixedEngine } from '$/engine';
+
+import stoneImage from '$/assets/stone.png';
 
 async function main() {
 
@@ -96,7 +98,10 @@ async function main() {
     const pathGraphics = new Graphics();
     world.addChild(pathGraphics);
 
-    const pathTexture = Texture.from('https://picsum.photos/50');
+    // const pathTexture = Texture.from();
+    const pathTexture = Texture.from(stoneImage, {
+        scaleMode: SCALE_MODES.NEAREST
+    });
     await new Promise((resolve) => {
 
         pathTexture.baseTexture.on('loaded', () => {
@@ -125,11 +130,11 @@ async function main() {
             i++;
             pathGraphics.beginFill(color);
 
-            pathGraphics.drawRect(
-                (point.x * world.cellSize.x) - (world.cellSize.x / 2),
-                (point.y * world.cellSize.y) - (world.cellSize.y / 2),
-                world.cellSize.x, world.cellSize.y
-            );
+            // pathGraphics.drawRect(
+            //     (point.x * world.cellSize.x) - (world.cellSize.x / 2),
+            //     (point.y * world.cellSize.y) - (world.cellSize.y / 2),
+            //     world.cellSize.x, world.cellSize.y
+            // );
 
             maxX = Math.max(point.x, maxX);
             minX = Math.min(point.x, minX);
@@ -153,6 +158,8 @@ async function main() {
             // sprite.anchor.set(0.5);
             sprite.position.x = ((point.x - minX) * world.cellSize.x);
             sprite.position.y = ((point.y - minY) * world.cellSize.y);
+            sprite.width = world.cellSize.x;
+            sprite.height = world.cellSize.y;
             levelContainer.addChild(sprite);
 
         });
