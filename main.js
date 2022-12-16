@@ -1,11 +1,11 @@
 import './style.css';
 
-import { World } from './lib/world';
+import { World } from '$/world';
 
 import { Application, Container, Graphics, ObservablePoint, Point, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { Stage, Layer } from '@pixi/layers';
-import { GroupMap } from './lib/groupMap';
-import { FixedEngine } from './lib/engine';
+import { GroupMap } from '$/groupMap';
+import { FixedEngine } from '$/engine';
 
 async function main() {
 
