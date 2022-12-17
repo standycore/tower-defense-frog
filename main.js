@@ -108,6 +108,8 @@ async function main() {
     );
     const pathSheet = await Assets.load('pathSheet');
 
+    // console.log(pathSheet);
+
     let level;
     function generatePath() {
 
@@ -147,10 +149,17 @@ async function main() {
         //     levelContainer.destroy();
         // }
         const levelContainer = new Container();
+        const pathTag = pathSheet.data.meta.frameTags.find(({ name }) => name === 'stones');
+        const pathFrames = [];
+        for (let i = pathTag.from; i <= pathTag.to; i++) {
+
+            pathFrames.push(pathSheet.textures[i]);
+
+        }
 
         path.forEach((point) => {
 
-            const sprite = Sprite.from(pathSheet.textures[Math.floor(Math.random() * pathSheet.data.frames.length)]);
+            const sprite = Sprite.from(pathFrames[Math.floor(Math.random() * pathFrames.length)]);
             sprite.position.x = ((point.x - minX) * world.cellSize.x);
             sprite.position.y = ((point.y - minY) * world.cellSize.y);
             sprite.width = world.cellSize.x;

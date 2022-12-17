@@ -80,6 +80,7 @@
   "size": { "w": 256, "h": 32 },
   "scale": "1",
   "frameTags": [
+   { "name": "stones", "from": 0, "to": 7, "direction": "forward" }
   ],
   "layers": [
    { "name": "Layer 1", "opacity": 255, "blendMode": "normal" }
