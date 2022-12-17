@@ -2,12 +2,10 @@ import './style.css';
 
 import { World } from '$/world';
 
-import { Application, Container, Graphics, ObservablePoint, Point, RenderTexture, SCALE_MODES, Sprite, Texture } from 'pixi.js';
+import { Application, Assets, Container, Graphics, ObservablePoint, Point, RenderTexture, SCALE_MODES, settings, Sprite } from 'pixi.js';
 import { Stage, Layer } from '@pixi/layers';
 import { GroupMap } from '$/groupMap';
 import { FixedEngine } from '$/engine';
-
-import stoneImage from '$/assets/stone.png';
 
 async function main() {
 
@@ -87,6 +85,10 @@ async function main() {
 
     });
 
+    /**
+     * creates a update loop for rendering. not for gameplay!
+     * optional if everything is already rendered from the app
+     */
     // let time = 0;
     // // Listen for frame updates
     // app.ticker.add((delta) => {
@@ -98,19 +100,13 @@ async function main() {
     const pathGraphics = new Graphics();
     world.addChild(pathGraphics);
 
-    // const pathTexture = Texture.from();
-    const pathTexture = Texture.from(stoneImage, {
-        scaleMode: SCALE_MODES.NEAREST
-    });
-    await new Promise((resolve) => {
+    settings.SCALE_MODE = SCALE_MODES.NEAREST;
 
-        pathTexture.baseTexture.on('loaded', () => {
-
-            resolve();
-
-        });
-
-    });
+    Assets.add(
+        'pathSheet',
+        './lib/assets/world-sheet.json'
+    );
+    const pathSheet = await Assets.load('pathSheet');
 
     let level;
     function generatePath() {
@@ -154,12 +150,12 @@ async function main() {
 
         path.forEach((point) => {
 
-            const sprite = Sprite.from(pathTexture);
-            // sprite.anchor.set(0.5);
+            const sprite = Sprite.from(pathSheet.textures[Math.floor(Math.random() * pathSheet.data.frames.length)]);
             sprite.position.x = ((point.x - minX) * world.cellSize.x);
             sprite.position.y = ((point.y - minY) * world.cellSize.y);
             sprite.width = world.cellSize.x;
             sprite.height = world.cellSize.y;
+
             levelContainer.addChild(sprite);
 
         });
