@@ -115,6 +115,13 @@ async function main() {
     );
     await Assets.load('flySheet');
 
+    // Assets for the spider
+    Assets.add(
+        'spiderSheet',
+        './lib/assets/spider-sheet.json'
+    );
+    await Assets.load('spiderSheet');
+
     // console.log(pathSheet);
 
     let level;
@@ -301,6 +308,7 @@ async function main() {
         const bugs = [];
         const pathArray = Array.from(path.values());
         const spawnPoint = pathArray[0];
+        const bugType = ['fly', 'spider'];
 
         let spawnTimer = 5000;
         engine.onUpdate((ticks) => {
@@ -311,19 +319,15 @@ async function main() {
             if (spawnTimer >= 5000) {
 
                 spawnTimer -= 5000;
-                const bug = new Bug('fly', world);
+                const bug = new Bug(bugType[Math.floor(Math.random() * bugType.length)], world);
                 bugs.push(bug);
-
-                if (bug.type === 'fly') {
-
-                    world.addChild(bug.sprite);
-                    bug.position.set(spawnPoint);
-
-                }
+                world.addChild(bug.sprite);
+                bug.position.set(spawnPoint);
 
             }
 
-            spawnTimer += 60 / 10;
+            spawnTimer += 1000 / 60;
+
             for (let i = 0; i < bugs.length; i++) {
 
                 const bug = bugs[i];
