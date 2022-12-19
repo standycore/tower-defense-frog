@@ -188,6 +188,75 @@ async function main() {
 
         });
 
+        wfc.createRule('prefer-adjacent-water', (value, x, y) => {
+
+            // number of adjacent cells that are not water
+            let count = 0;
+
+            forEachAdjacent(x, y, (nx, ny) => {
+
+                if (wfc.grid.get(nx, ny)?.decision && wfc.grid.get(nx, ny)?.decision.value !== 'w') {
+
+                    count++;
+
+                }
+
+            });
+
+            return count < 2;
+
+        });
+
+        wfc.createRule('no-island', (value, x, y) => {
+
+            // number of adjacent cells that are water
+            let count = 0;
+
+            forEachAdjacent(x, y, (nx, ny) => {
+
+                const decision = wfc.grid.get(nx, ny)?.decision;
+
+                if (decision && (decision.value === 'w' || decision.value === 'l')) {
+
+                    count++;
+
+                }
+
+            });
+
+            return count < 4;
+
+        });
+
+        wfc.createRule('require-adjacent-water', (value, x, y) => {
+
+            // number of adjacent cells that are water
+            let count = 0;
+
+            forEachAdjacent(x, y, (nx, ny) => {
+
+                const decision = wfc.grid.get(nx, ny)?.decision;
+
+                if (decision) {
+
+                    if (decision.value === 'w') {
+
+                        count++;
+
+                    }
+
+                } else {
+
+                    return true;
+
+                }
+
+            });
+
+            return count > 0;
+
+        });
+
         for (let x = -6; x <= 6; x++) {
 
             for (let y = -6; y <= 6; y++) {
@@ -196,7 +265,7 @@ async function main() {
 
                 wfc.addOptionToCell(x, y, 'l', ['no-adjacent-water']);
 
-                wfc.addOptionToCell(x, y, 'c', []);
+                wfc.addOptionToCell(x, y, 'c', ['no-island']);
 
                 wfc.addOptionToCell(x, y, 'w', ['no-adjacent-land']);
 
@@ -303,7 +372,7 @@ async function main() {
         const spawnPoint = pathArray[0];
 
         let spawnTimer = 0;
-        engine.onUpdate((ticks) => {
+        engine.onUpdate((delta, ticks) => {
 
             // world.camera.zoom = (Math.sin(ticks * 0.01) + 1) * 0.5;
 
@@ -329,7 +398,7 @@ async function main() {
                 const bug = bugs[i];
                 if (!bug.destroyed) {
 
-                    bug.update(pathArray);
+                    bug.update(delta, pathArray);
 
                 } else {
 
