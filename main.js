@@ -302,7 +302,7 @@ async function main() {
         const pathArray = Array.from(path.values());
         const spawnPoint = pathArray[0];
 
-        let spawnTimer = 0;
+        let spawnTimer = 5000;
         engine.onUpdate((ticks) => {
 
             // world.camera.zoom = (Math.sin(ticks * 0.01) + 1) * 0.5;
