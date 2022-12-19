@@ -6,6 +6,7 @@ import { Application, Assets, Container, Graphics, ObservablePoint, Point, Rende
 import { Stage, Layer } from '@pixi/layers';
 import { GroupMap } from '$/groupMap';
 import { FixedEngine } from '$/engine';
+import { Bug } from '$/bug';
 
 import './src/settings';
 import { WaveFunctionCollapser } from '$/wfc';
@@ -67,9 +68,6 @@ async function main() {
     app.stage.addChild(world);
 
     const engine = new FixedEngine();
-    engine.onUpdate((ticks) => {
-        // world.camera.zoom = (Math.sin(ticks * 0.01) + 1) * 0.5;
-    });
     engine.start();
 
     /**
@@ -103,11 +101,19 @@ async function main() {
     const pathGraphics = new Graphics();
     world.addChild(pathGraphics);
 
+    // Assets for the rock path
     Assets.add(
         'pathSheet',
         './lib/assets/world-sheet.json'
     );
     const pathSheet = await Assets.load('pathSheet');
+
+    // Assets for the fly
+    Assets.add(
+        'flySheet',
+        './lib/assets/fly-sheet.json'
+    );
+    await Assets.load('flySheet');
 
     // console.log(pathSheet);
 
@@ -214,12 +220,12 @@ async function main() {
 
             const { x, y, value } = decision;
 
+            // Starting coordinates
+            const startX = (x * world.cellSize.x) - (world.cellSize.x / 2);
+            const startY = (y * world.cellSize.y) - (world.cellSize.y / 2);
+
             pathGraphics.beginFill(valueColorMap[value] || 0xFFFFFF);
-            pathGraphics.drawRect(
-                (x * world.cellSize.x) - (world.cellSize.x / 2),
-                (y * world.cellSize.y) - (world.cellSize.y / 2),
-                world.cellSize.x, world.cellSize.y
-            );
+            pathGraphics.drawRect(startX, startY, world.cellSize.x, world.cellSize.y);
             pathGraphics.endFill();
 
         });
@@ -276,7 +282,7 @@ async function main() {
 
         });
 
-        path.clear();
+        // path.clear();
 
         app.renderer.render(levelContainer, { renderTexture });
 
@@ -291,6 +297,49 @@ async function main() {
             (minY - 0.5) * world.cellSize.y
         );
         world.addChild(level);
+
+        const bugs = [];
+        const pathArray = Array.from(path.values());
+        const spawnPoint = pathArray[0];
+
+        let spawnTimer = 0;
+        engine.onUpdate((ticks) => {
+
+            // world.camera.zoom = (Math.sin(ticks * 0.01) + 1) * 0.5;
+
+            // timer to spawn bugs
+            if (spawnTimer >= 5000) {
+
+                spawnTimer -= 5000;
+                const bug = new Bug('fly', world);
+                bugs.push(bug);
+
+                if (bug.type === 'fly') {
+
+                    world.addChild(bug.sprite);
+                    bug.position.set(spawnPoint);
+
+                }
+
+            }
+
+            spawnTimer += 60 / 10;
+            for (let i = 0; i < bugs.length; i++) {
+
+                const bug = bugs[i];
+                if (!bug.destroyed) {
+
+                    bug.update(pathArray);
+
+                } else {
+
+                    bugs.splice(i, 1);
+
+                }
+
+            }
+
+        });
 
     }
 

@@ -36,6 +36,9 @@
     "duration": 50
    }
  ],
+ "animations": {
+  "idle": ["0", "1", "2", "3"]
+ },
  "meta": {
   "app": "https://www.aseprite.org/",
   "version": "1.2.40-x64",
