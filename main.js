@@ -379,7 +379,7 @@ async function main() {
         const spawnPoint = pathArray[0];
         const bugType = ['fly', 'spider'];
 
-        let spawnTimer = 0;
+        let spawnTimer = 5000;
         engine.onUpdate((delta, ticks) => {
 
             // world.camera.zoom = (Math.sin(ticks * 0.01) + 1) * 0.5;
