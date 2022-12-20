@@ -122,6 +122,12 @@ async function main() {
     );
     await Assets.load('spiderSheet');
 
+    Assets.add(
+        'butterflySheet',
+        './lib/assets/butterfly-sheet.json'
+    );
+    await Assets.load('butterflySheet');
+
     // console.log(pathSheet);
 
     let level;
@@ -377,7 +383,7 @@ async function main() {
         const bugs = [];
         const pathArray = Array.from(path.values());
         const spawnPoint = pathArray[0];
-        const bugType = ['fly', 'spider'];
+        const bugType = ['fly', 'spider', 'butterfly'];
 
         let spawnTimer = 5000;
         engine.onUpdate((delta, ticks) => {
