@@ -10,6 +10,7 @@ import { Bug } from '$/bug';
 
 import './src/settings';
 import { WaveFunctionCollapser } from '$/wfc';
+import { Frog } from '$/frog';
 
 async function main() {
 
@@ -108,6 +109,13 @@ async function main() {
     );
     const pathSheet = await Assets.load('pathSheet');
 
+    // Assets for the base frog
+    Assets.add(
+        'frogSheet',
+        './lib/assets/frog-sheet.json'
+    );
+    await Assets.load('frogSheet');
+
     // Assets for the fly
     Assets.add(
         'flySheet',
@@ -122,6 +130,7 @@ async function main() {
     );
     await Assets.load('spiderSheet');
 
+    // Assets for the butterfly
     Assets.add(
         'butterflySheet',
         './lib/assets/butterfly-sheet.json'
@@ -379,6 +388,10 @@ async function main() {
             (minY - 0.5) * world.cellSize.y
         );
         world.addChild(level);
+
+        const frog = new Frog('frog', world);
+        world.addChild(frog.sprite);
+        frog.position.set(0, 0);
 
         const bugs = [];
         const pathArray = Array.from(path.values());
