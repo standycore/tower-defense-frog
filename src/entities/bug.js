@@ -13,7 +13,7 @@ class Bug extends ECS.Entity {
         super();
 
         let sprite;
-        let moveInterval;
+        let speed;
         let health;
 
         // changes the sprite, the health, and the move speed of the fly based on the type
@@ -21,19 +21,19 @@ class Bug extends ECS.Entity {
 
             sprite = new CustomSprite(Assets.get('flySheet'));
             health = 1;
-            moveInterval = 1000;
+            speed = 2;
 
         } else if (type === 'spider') {
 
             sprite = new CustomSprite(Assets.get('spiderSheet'));
             health = 5;
-            moveInterval = 2000;
+            speed = 1;
 
         } else if (type === 'butterfly') {
 
             sprite = new CustomSprite(Assets.get('butterflySheet'));
             health = 3;
-            moveInterval = 500;
+            speed = 3;
 
         }
 
@@ -47,7 +47,7 @@ class Bug extends ECS.Entity {
 
         this.addComponent(CustomSpriteComponent, sprite);
         this.addComponent(WorldComponent, world, sprite);
-        this.addComponent(PathFollowerComponent, pathArray, moveInterval);
+        this.addComponent(PathFollowerComponent, pathArray, speed);
         this.addComponent(HealthComponent, health);
 
     }
