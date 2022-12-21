@@ -1,0 +1,3 @@
+const Global = {};
+
+export { Global };
