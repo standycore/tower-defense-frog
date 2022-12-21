@@ -54,6 +54,8 @@ async function main() {
 
     });
 
+    Global.groupMap = groupMap;
+
     // creates a new World, which extends PIXI.Container
     // this is where game related objects should be added
     const world = new World(app);
