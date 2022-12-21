@@ -5,6 +5,8 @@
     },
     "extends": [
         "standard",
+        // react plugins - both required if using react
+        "plugin:react/recommended",
         "plugin:react/jsx-runtime"
     ],
     "overrides": [
@@ -27,6 +29,9 @@
             "asyncArrow": "always"
         }],
         // padding within blocks such as classes, functions, etc
-        "padded-blocks": ["error", "always"]
+        "padded-blocks": ["error", "always"],
+        // REACT
+        // disable prop-type validation
+        "react/prop-types": [0]
     }
 }
