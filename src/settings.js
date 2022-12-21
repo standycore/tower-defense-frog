@@ -1,5 +1,7 @@
 import { SCALE_MODES, settings } from 'pixi.js';
 
+import '@pixi/math-extras';
+
 async function init() {
 
     // sets the default scaling mode of all loaded textures to NEAREST
