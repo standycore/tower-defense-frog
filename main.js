@@ -1,16 +1,18 @@
+/* eslint-disable quote-props */
 import './style.css';
 
 import { World } from '$/world';
 
-import { Application, Assets, Container, Graphics, ObservablePoint, Point, RenderTexture, Sprite } from 'pixi.js';
+import { Application, Assets, Graphics, ObservablePoint, Sprite } from 'pixi.js';
 import { Stage, Layer } from '@pixi/layers';
 import { GroupMap } from '$/groupMap';
 import { FixedEngine } from '$/engine';
-import { Bug } from '$/bug';
 
 import './src/settings';
-import { WaveFunctionCollapser } from '$/wfc';
-import { Frog } from '$/frog';
+import { Game } from './src/game';
+import { generateLevel } from './src/level';
+import { getTextureArrayFromTag } from '$/util';
+import { Global } from 'src/global';
 
 async function main() {
 
@@ -29,11 +31,9 @@ async function main() {
     // sorts layers (probably optional)
     app.stage.sortableChildren = true;
 
-    /**
-     * gets the global groupMap, which maps the name of a group to a group object
-     * the group is created in the group map
-     * this is part of @pixi/layers
-     */
+    // gets the global groupMap, which maps the name of a group to a group object
+    // the group is created in the group map
+    // this is part of @pixi/layers
     const groupMap = GroupMap.groupMap;
     groupMap.create('default', 0, (object) => {
 
@@ -46,20 +46,16 @@ async function main() {
 
     });
 
-    /**
-     * creates a layer for each group, and adds the layer to the stage
-     * this is necessary for objects using the group render method to be visible
-     */
+    // creates a layer for each group, and adds the layer to the stage
+    // this is necessary for objects using the group render method to be visible
     groupMap.forEach((group) => {
 
         app.stage.addChild(new Layer(group));
 
     });
 
-    /**
-     * creates a new World, which extends PIXI.Container
-     * this is where game related objects should be added
-     */
+    // creates a new World, which extends PIXI.Container
+    // this is where game related objects should be added
     const world = new World(app);
 
     // sets the cell size of the world
@@ -71,11 +67,9 @@ async function main() {
     const engine = new FixedEngine();
     engine.start();
 
-    /**
-     * creates PIXI observable points for the canvas mouse position
-     * this can be used as a global position, not for the world but for the canvas itself
-     * might change to normal point later
-     */
+    // creates PIXI observable points for the canvas mouse position
+    // this can be used as a global position, not for the world but for the canvas itself
+    // might change to normal point later
     const canvasMousePosition = new ObservablePoint(() => {}, this);
     const canvasMouseRelative = new ObservablePoint(() => {}, this);
     app.view.addEventListener('mousemove', (e) => {
@@ -87,357 +81,211 @@ async function main() {
 
     });
 
-    /**
-     * creates a update loop for rendering. not for gameplay!
-     * optional if everything is already rendered from the app
-     */
-    // let time = 0;
-    // // Listen for frame updates
-    // app.ticker.add((delta) => {
-    //     time += delta;
-    // });
-
-    // creates path
-
     const pathGraphics = new Graphics();
-    world.addChild(pathGraphics);
+    // world.addChild(pathGraphics);
 
-    // Assets for the rock path
-    Assets.add(
-        'pathSheet',
-        './lib/assets/world-sheet.json'
-    );
-    const pathSheet = await Assets.load('pathSheet');
-
-    // Assets for the base frog
-    Assets.add(
-        'frogSheet',
-        './lib/assets/frog-sheet.json'
-    );
-    await Assets.load('frogSheet');
-
-    // Assets for the fly
-    Assets.add(
-        'flySheet',
-        './lib/assets/fly-sheet.json'
-    );
-    await Assets.load('flySheet');
-
-    // Assets for the spider
-    Assets.add(
-        'spiderSheet',
-        './lib/assets/spider-sheet.json'
-    );
-    await Assets.load('spiderSheet');
-
-    // Assets for the butterfly
-    Assets.add(
-        'butterflySheet',
-        './lib/assets/butterfly-sheet.json'
-    );
-    await Assets.load('butterflySheet');
+    const waterGraphics = new Graphics();
+    waterGraphics.beginFill(0x2233DD);
+    waterGraphics.drawRect(-400, -400, 800, 800);
+    waterGraphics.endFill();
+    world.addChild(waterGraphics);
 
     // console.log(pathSheet);
+    await Game.load();
 
     let level;
-    async function generatePath() {
+    let generating = false;
+    let toDestroy = [];
+    async function handleGenerateLevel() {
 
-        const path = world.createPath(-4, 4, new Point(0, -1));
+        if (generating) {
 
-        let maxX = 0;
-        let minX = 0;
-        let maxY = 0;
-        let minY = 0;
+            return;
 
-        const wfc = new WaveFunctionCollapser();
+        }
 
-        function forEachAdjacent(x, y, callback) {
+        toDestroy.forEach((sprite) => {
 
-            for (let ox = -1; ox <= 1; ox++) {
+            sprite.destroy();
 
-                for (let oy = -1; oy <= 1; oy++) {
+        });
+        toDestroy = [];
 
+        generating = true;
+        level = await generateLevel(world, pathGraphics);
+
+        // const renderTexture = RenderTexture.create({ width: (maxX - minX + 1) * world.cellSize.x, height: (maxY - minY + 1) * world.cellSize.y });
+        // if (levelContainer) {
+        //     levelContainer.destroy();
+        // }
+        // const levelContainer = new Container();
+        const worldSheet = Assets.get('worldSheet');
+
+        const groundTextures = getTextureArrayFromTag(worldSheet, 'dirt');
+
+        const pathTextures = getTextureArrayFromTag(worldSheet, 'stones');
+
+        const groundIndexMap = {
+            '11111111': 0,
+            '00000000': 1,
+            '11111110': 2,
+            '11111011': 3,
+            '01111111': 4,
+            '11011111': 5,
+            '11010000': 6,
+            '01101000': 7,
+            '00001011': 8,
+            '00010110': 9,
+            '01101011': 10,
+            '11010110': 11,
+            '11111000': 12,
+            '00011111': 13,
+            '00001000': 14,
+            '00010000': 15,
+            '01000000': 16,
+            '00000010': 17,
+            '00011000': 18,
+            '01000010': 19,
+            '1111': 0
+        };
+
+        Object.entries(groundIndexMap).forEach(([key, value]) => {
+
+            key = key[1] + key[3] + key[4] + key[6];
+            if (groundIndexMap[key] === undefined) {
+
+                groundIndexMap[key] = value;
+
+            }
+
+        });
+
+        // fill background under path
+        level.grid.forEach((value, x, y) => {
+
+            if (value.background !== 'l' && value.background !== 'c') {
+
+                return;
+
+            }
+
+            let key = '';
+            let backKey = '';
+
+            for (let oy = -1; oy <= 1; oy++) {
+
+                for (let ox = -1; ox <= 1; ox++) {
+
+                    // skip center
                     if (ox === 0 && ox === oy) {
 
                         continue;
 
                     }
 
-                    const nx = x + ox;
-                    const ny = y + oy;
+                    // diagonal check
+                    let diagonal = false;
+                    if (Math.abs(ox) === Math.abs(oy)) {
 
-                    callback(nx, ny);
-
-                }
-
-            }
-
-        }
-
-        wfc.createRule('no-adjacent-water', (value, x, y) => {
-
-            let result = true;
-
-            forEachAdjacent(x, y, (nx, ny) => {
-
-                if (wfc.grid.get(nx, ny)?.decision?.value === 'w') {
-
-                    result = false;
-
-                }
-
-            });
-
-            return result;
-
-        });
-
-        wfc.createRule('no-adjacent-land', (value, x, y) => {
-
-            let result = true;
-
-            forEachAdjacent(x, y, (nx, ny) => {
-
-                if (wfc.grid.get(nx, ny)?.decision?.value === 'l') {
-
-                    result = false;
-
-                }
-
-            });
-
-            return result;
-
-        });
-
-        wfc.createRule('prefer-adjacent-water', (value, x, y) => {
-
-            // number of adjacent cells that are not water
-            let count = 0;
-
-            forEachAdjacent(x, y, (nx, ny) => {
-
-                if (wfc.grid.get(nx, ny)?.decision && wfc.grid.get(nx, ny)?.decision.value !== 'w') {
-
-                    count++;
-
-                }
-
-            });
-
-            return count < 2;
-
-        });
-
-        wfc.createRule('no-island', (value, x, y) => {
-
-            // number of adjacent cells that are water
-            let count = 0;
-
-            forEachAdjacent(x, y, (nx, ny) => {
-
-                const decision = wfc.grid.get(nx, ny)?.decision;
-
-                if (decision && (decision.value === 'w' || decision.value === 'l')) {
-
-                    count++;
-
-                }
-
-            });
-
-            return count < 4;
-
-        });
-
-        wfc.createRule('require-adjacent-water', (value, x, y) => {
-
-            // number of adjacent cells that are water
-            let count = 0;
-
-            forEachAdjacent(x, y, (nx, ny) => {
-
-                const decision = wfc.grid.get(nx, ny)?.decision;
-
-                if (decision) {
-
-                    if (decision.value === 'w') {
-
-                        count++;
+                        diagonal = true;
 
                     }
 
-                } else {
+                    const adjCellValue = level.grid.get(x + ox, y + oy)?.background || 'w';
 
-                    return true;
+                    if (adjCellValue === 'l' || adjCellValue === 'c') {
+
+                        key += '1';
+                        if (!diagonal) {
+
+                            backKey += '1';
+
+                        }
+
+                    } else {
+
+                        key += '0';
+                        if (!diagonal) {
+
+                            backKey += '0';
+
+                        }
+
+                    }
 
                 }
 
-            });
-
-            return count > 0;
-
-        });
-
-        for (let x = -6; x <= 6; x++) {
-
-            for (let y = -6; y <= 6; y++) {
-
-                wfc.setCell(x, y);
-
-                wfc.addOptionToCell(x, y, 'l', ['no-adjacent-water']);
-
-                wfc.addOptionToCell(x, y, 'c', ['no-island']);
-
-                wfc.addOptionToCell(x, y, 'w', ['no-adjacent-land']);
-
             }
 
-        }
+            // console.log('ground at', x, y, value, key);
 
-        const valueColorMap = {
-            l: 0x00FF00,
-            c: 0xFFFF00,
-            w: 0x0000FF
-        };
+            const index = groundIndexMap[key] || groundIndexMap[backKey] || groundIndexMap['11111111'];
 
-        wfc.onCellCollapse((decision) => {
-
-            if (!decision) {
-
-                return;
-
-            }
-
-            const { x, y, value } = decision;
-
-            // Starting coordinates
-            const startX = (x * world.cellSize.x) - (world.cellSize.x / 2);
-            const startY = (y * world.cellSize.y) - (world.cellSize.y / 2);
-
-            pathGraphics.beginFill(valueColorMap[value] || 0xFFFFFF);
-            pathGraphics.drawRect(startX, startY, world.cellSize.x, world.cellSize.y);
-            pathGraphics.endFill();
-
-        });
-
-        pathGraphics.clear();
-
-        await wfc.collapse();
-
-        let i = 0;
-        path.forEach((point) => {
-
-            const color = (0xFF0000) | (0xFF00 * (i / path.size)) | (0xFF);
-            i++;
-            pathGraphics.beginFill(color);
-
-            // pathGraphics.drawRect(
-            //     (point.x * world.cellSize.x) - (world.cellSize.x / 2),
-            //     (point.y * world.cellSize.y) - (world.cellSize.y / 2),
-            //     world.cellSize.x, world.cellSize.y
-            // );
-
-            maxX = Math.max(point.x, maxX);
-            minX = Math.min(point.x, minX);
-            maxY = Math.max(point.y, maxY);
-            minY = Math.min(point.y, minY);
-
-            // world.addChild(sprite);
-
-        });
-        pathGraphics.endFill();
-
-        const renderTexture = RenderTexture.create({ width: (maxX - minX + 1) * world.cellSize.x, height: (maxY - minY + 1) * world.cellSize.y });
-        // if (levelContainer) {
-        //     levelContainer.destroy();
-        // }
-        const levelContainer = new Container();
-        const pathTag = pathSheet.data.meta.frameTags.find(({ name }) => name === 'stones');
-        const pathFrames = [];
-        for (let i = pathTag.from; i <= pathTag.to; i++) {
-
-            pathFrames.push(pathSheet.textures[i]);
-
-        }
-
-        path.forEach((point) => {
-
-            const sprite = Sprite.from(pathFrames[Math.floor(Math.random() * pathFrames.length)]);
-            sprite.position.x = ((point.x - minX) * world.cellSize.x);
-            sprite.position.y = ((point.y - minY) * world.cellSize.y);
+            const sprite = Sprite.from(groundTextures[index]);
+            sprite.position.x = (x * world.cellSize.x);
+            sprite.position.y = (y * world.cellSize.y);
+            sprite.anchor.set(0.5);
             sprite.width = world.cellSize.x;
             sprite.height = world.cellSize.y;
 
-            levelContainer.addChild(sprite);
+            toDestroy.push(sprite);
+
+            world.addChild(sprite);
 
         });
+
+        level.path.forEach((value, x, y) => {
+
+            const sprite = Sprite.from(pathTextures[Math.floor(Math.random() * pathTextures.length)]);
+            // sprite.position.x = ((point.x - minX) * world.cellSize.x);
+            // sprite.position.y = ((point.y - minY) * world.cellSize.y);
+            sprite.position.x = (x * world.cellSize.x);
+            sprite.position.y = (y * world.cellSize.y);
+            sprite.anchor.set(0.5);
+            sprite.width = world.cellSize.x;
+            sprite.height = world.cellSize.y;
+
+            toDestroy.push(sprite);
+
+            world.addChild(sprite);
+
+        });
+
+        Global.level = level;
+        Global.world = world;
 
         // path.clear();
 
-        app.renderer.render(levelContainer, { renderTexture });
+        // app.renderer.render(levelContainer, { renderTexture });
 
-        if (level) {
+        // if (level) {
 
-            level.destroy();
+        //     level.destroy();
 
-        }
-        level = Sprite.from(renderTexture);
-        level.position.set(
-            (minX - 0.5) * world.cellSize.x,
-            (minY - 0.5) * world.cellSize.y
-        );
-        world.addChild(level);
+        // }
+        // level = Sprite.from(renderTexture);
+        // level.position.set(
+        //     (minX - 0.5) * world.cellSize.x,
+        //     (minY - 0.5) * world.cellSize.y
+        // );
+        // world.addChild(level);
+        await Game.preUpdate();
 
-        const frog = new Frog('frog', world);
-        world.addChild(frog.sprite);
-        frog.position.set(0, 0);
-
-        const bugs = [];
-        const pathArray = Array.from(path.values());
-        const spawnPoint = pathArray[0];
-        const bugType = ['fly', 'spider', 'butterfly'];
-
-        let spawnTimer = 5000;
-        engine.onUpdate((delta, ticks) => {
-
-            // world.camera.zoom = (Math.sin(ticks * 0.01) + 1) * 0.5;
-
-            // timer to spawn bugs
-            if (spawnTimer >= 5000) {
-
-                spawnTimer -= 5000;
-                const bug = new Bug(bugType[Math.floor(Math.random() * bugType.length)], world);
-                bugs.push(bug);
-                world.addChild(bug.sprite);
-                bug.position.set(spawnPoint);
-
-            }
-
-            spawnTimer += 1000 / 60;
-
-            for (let i = 0; i < bugs.length; i++) {
-
-                const bug = bugs[i];
-                if (!bug.destroyed) {
-
-                    bug.update(delta, pathArray);
-
-                } else {
-
-                    bugs.splice(i, 1);
-
-                }
-
-            }
-
-        });
+        generating = false;
 
     }
 
+    await handleGenerateLevel();
+
+    engine.onUpdate((delta, time) => {
+
+        Game.update(delta, time);
+
+    });
+
     // world.addChild(levelContainer);
 
-    document.querySelector('#generate-path').addEventListener('click', generatePath);
+    document.querySelector('#generate-path').addEventListener('click', handleGenerateLevel);
 
     // pathGraphics.parentGroup = groupMap.get('hover');
 
