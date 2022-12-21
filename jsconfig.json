@@ -4,7 +4,8 @@
     "target": "es6",
     "baseUrl": ".",
     "paths": {
-      "$/*": ["./lib/*"]
+      "$/*": ["./lib/*"],
+      "src/*": ["./src/*"]
     },
     "moduleResolution": "node"
   }

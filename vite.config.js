@@ -6,7 +6,8 @@ export default {
     },
     resolve: {
         alias: {
-            $: path.resolve(__dirname, 'lib')
+            $: path.resolve(__dirname, 'lib'),
+            src: path.resolve(__dirname, './src')
         }
     }
 };
