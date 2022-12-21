@@ -44,7 +44,6 @@ class PathFollowerComponent extends ECS.Component {
             // check for reaching end of path
             if (this.index >= this.pathArray.length - 1) {
 
-                console.log(this.index, this.pathArray.length);
                 this.entity.destroy();
                 return;
 
