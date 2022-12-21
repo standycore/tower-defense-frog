@@ -1,0 +1,9 @@
+.shop-container {
+    background-color: beige;
+    width: min-content;
+}
+
+.item-container {
+    display: grid;
+    grid-template-columns: 1fr;
+}
