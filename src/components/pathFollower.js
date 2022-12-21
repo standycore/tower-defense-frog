@@ -1,18 +1,20 @@
 import { ECS } from '$/ecs';
+import { Vector2 } from '$/vector';
 import { WorldComponent } from './world';
 
 class PathFollowerComponent extends ECS.Component {
 
-    preUpdate(pathArray, moveInterval = 1000) {
+    preUpdate(pathArray, speed = 1) {
 
         this.pathArray = pathArray;
 
-        // initializes the moveTimer(current milliseconds for moveInterval) and index(current index in pathArray) variables
-        this.moveTimer = 0;
+        // initializes index(current index in pathArray) variables
         this.index = 0;
-        this.moveInterval = moveInterval;
 
         this.worldComponent = this.entity.getComponent(WorldComponent);
+
+        // world distance travelled per second
+        this.speed = speed;
 
     }
 
@@ -32,25 +34,44 @@ class PathFollowerComponent extends ECS.Component {
 
         }
 
-        // checks to see if it's time to move the fly and if the fly is at the end of the path
-        if (this.moveTimer >= this.moveInterval) {
+        let frameTravelDistance = this.speed * delta * 0.001;
+        const currentPoint = new Vector2(this.position);
+        // safety escape that prevents infinite loop
+        let iter = 0;
 
-            this.moveTimer -= this.moveInterval;
-            this.index++;
-            if (this.pathArray[this.index]) {
+        while (iter < 100) {
 
-                this.position.x = this.pathArray[this.index].x;
-                this.position.y = this.pathArray[this.index].y;
+            // check for reaching end of path
+            if (this.index >= this.pathArray.length - 1) {
 
-            } else {
-
+                console.log(this.index, this.pathArray.length);
                 this.entity.destroy();
+                return;
 
             }
 
+            const targetPoint = new Vector2(this.pathArray[this.index + 1]);
+            const distanceToTarget = Vector2.distanceBetweenVectors(currentPoint, targetPoint);
+
+            // the distance travelled in the frame will not reach the target
+            if (frameTravelDistance < distanceToTarget) {
+
+                const direction = targetPoint.copy().sub(currentPoint).normalize();
+                currentPoint.add(direction.mul(frameTravelDistance));
+                break;
+
+            }
+            // distance travelled in the frame will reach/pass the target
+            // so, move to next path point and subtract that from travelDistance
+            frameTravelDistance -= distanceToTarget;
+            this.index += 1;
+            currentPoint.set(targetPoint);
+
+            iter++;
+
         }
 
-        this.moveTimer += delta;
+        this.position.set(currentPoint.x, currentPoint.y);
 
     }
 
