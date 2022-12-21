@@ -4,7 +4,8 @@
         "es2021": true
     },
     "extends": [
-        "standard"
+        "standard",
+        "plugin:react/jsx-runtime"
     ],
     "overrides": [
     ],
