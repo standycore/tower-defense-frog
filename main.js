@@ -14,6 +14,9 @@ import { generateLevel } from './src/level';
 import { getTextureArrayFromTag } from '$/util';
 import { Global } from 'src/global';
 
+import ReactDOM from 'react-dom/client';
+import ReactRoot from 'src/ui/root';
+
 async function main() {
 
     // The application will create a renderer using WebGL, if possible,
@@ -287,9 +290,15 @@ async function main() {
 
     // world.addChild(levelContainer);
 
-    document.querySelector('#generate-path').addEventListener('click', handleGenerateLevel);
+    // document.querySelector('#generate-path').addEventListener('click', handleGenerateLevel);
 
     // pathGraphics.parentGroup = groupMap.get('hover');
+
+    // creates ui using react and renders it with reactdom
+    const uiContainer = document.querySelector('.ui-container');
+
+    const root = ReactDOM.createRoot(uiContainer);
+    root.render(ReactRoot());
 
 }
 
