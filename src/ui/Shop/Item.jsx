@@ -1,10 +1,14 @@
 import './Item.css';
 
-export default function Item({ name }) {
+export default function Item({ name, onClick }) {
 
     function handleClick() {
 
-        console.log(name + ' clicked');
+        if (onClick) {
+
+            onClick();
+
+        }
 
     }
 
