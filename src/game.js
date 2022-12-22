@@ -1,4 +1,5 @@
 import { ECS } from '$/ecs';
+import { EventEmitter } from '$/events';
 import { loadAssets } from './assets';
 import { WorldComponent } from './components/world';
 import { Bug } from './entities/bug';
@@ -19,9 +20,33 @@ async function preUpdate() {
 
     console.log('preupdate');
 
+    // create/get world and level data
+    console.log('setting up world and level');
     world = Global.world;
     pathArray = Global.level.pathArray;
     spawnPoint = pathArray[0];
+
+    // fill shop
+    EventEmitter.events.on('shopReady', () => {
+
+        console.log('setting up shop');
+        EventEmitter.events.trigger('shopSetItem', {
+            id: 'coolfrog',
+            name: 'The super cool frog',
+            price: 100
+        });
+        EventEmitter.events.trigger('shopSetItem', {
+            id: 'sexyfrog',
+            name: 'The super sexy frog',
+            price: 120,
+            callback: (itemData) => {
+
+                console.log(itemData);
+
+            }
+        });
+
+    });
 
 }
 
