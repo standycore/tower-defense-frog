@@ -150,11 +150,11 @@ async function generateLevel(world, pathGraphics) {
 
     }
 
-    const valueColorMap = {
-        l: 0x00FF00,
-        c: 0xFFFF00,
-        w: 0x0000FF
-    };
+    // const valueColorMap = {
+    //     l: 0x00FF00,
+    //     c: 0xFFFF00,
+    //     w: 0x0000FF
+    // };
 
     const levelGrid = new Grid();
 
@@ -178,13 +178,13 @@ async function generateLevel(world, pathGraphics) {
 
         cell.background = value;
 
-        // Starting coordinates
-        const startX = (x * world.cellSize.x) - (world.cellSize.x / 2);
-        const startY = (y * world.cellSize.y) - (world.cellSize.y / 2);
+        // debug draw the world onto graphics
+        // const startX = (x * world.cellSize.x) - (world.cellSize.x / 2);
+        // const startY = (y * world.cellSize.y) - (world.cellSize.y / 2);
 
-        pathGraphics.beginFill(valueColorMap[value] || 0xFFFFFF);
-        pathGraphics.drawRect(startX, startY, world.cellSize.x, world.cellSize.y);
-        pathGraphics.endFill();
+        // pathGraphics.beginFill(valueColorMap[value] || 0xFFFFFF);
+        // pathGraphics.drawRect(startX, startY, world.cellSize.x, world.cellSize.y);
+        // pathGraphics.endFill();
 
     });
 
