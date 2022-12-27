@@ -8,6 +8,16 @@ class HealthComponent extends ECS.Component {
 
     }
 
+    update() {
+
+        if (this.health <= 0) {
+
+            this.entity.destroy();
+
+        }
+
+    }
+
 }
 
 HealthComponent.register();

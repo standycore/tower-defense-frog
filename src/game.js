@@ -1,8 +1,10 @@
 import { ECS } from '$/ecs';
 import { EventEmitter } from '$/events';
 import { loadAssets } from './assets';
+import { HealthComponent } from './components/health';
 import { WorldComponent } from './components/world';
 import { Bug } from './entities/bug';
+import { Frog } from './entities/frog';
 import { Global } from './global';
 
 async function load() {
@@ -25,6 +27,17 @@ async function preUpdate() {
     world = Global.world;
     pathArray = Global.level.pathArray;
     spawnPoint = pathArray[0];
+
+    // create a new frog
+    const frog = new Frog(world, 'frog');
+    entities.push(frog);
+
+    EventEmitter.events.on('frogEatBug', (strength) => {
+
+        entities[1].getComponent(HealthComponent).health -= strength;
+        console.log(entities[1].getComponent(HealthComponent).health);
+
+    });
 
     // fill shop
     EventEmitter.events.on('shopReady', () => {
@@ -49,12 +62,6 @@ async function preUpdate() {
     });
 
 }
-
-// const frog = new Frog('frog', world);
-// world.addChild(frog.sprite);
-// frog.position.set(0, 0);
-
-// const bugs = [];
 
 const bugType = ['fly', 'spider', 'butterfly'];
 
