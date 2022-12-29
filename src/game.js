@@ -76,13 +76,34 @@ async function preUpdate() {
             id: 'sexyfrog',
             name: 'The super sexy frog',
             price: 120,
-            callback: (itemData) => {
+            callback: async (itemData) => {
 
                 const frog = new Frog(world, 'frog');
-                entities.push(frog);
-                frog.getComponent(WorldComponent).position.set(spawnPoint.x, spawnPoint.y);
+                currentFrog = frog;
+
+                const handleClick = () => {
+
+                    console.log(currentFrog);
+                    if (currentFrog) {
+
+                        entities.push(currentFrog);
+                        currentFrog = null;
+                        window.removeEventListener('click', handleClick);
+
+                    }
+
+                };
+
+                await new Promise((resolve) => {
+
+                    setTimeout(resolve, 0);
+
+                });
+
+                window.addEventListener('click', handleClick);
 
             }
+
         });
 
     });
