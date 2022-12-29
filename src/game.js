@@ -17,6 +17,7 @@ const entities = [];
 let world;
 let pathArray;
 let spawnPoint;
+let currentFrog;
 
 async function preUpdate() {
 
@@ -28,14 +29,10 @@ async function preUpdate() {
     pathArray = Global.level.pathArray;
     spawnPoint = pathArray[0];
 
-    // create a new frog
-    const frog = new Frog(world, 'frog');
-    entities.push(frog);
-
     EventEmitter.events.on('frogEatBug', (strength) => {
 
-        entities[1].getComponent(HealthComponent).health -= strength;
-        console.log(entities[1].getComponent(HealthComponent).health);
+        // entities[0].getComponent(HealthComponent).health -= strength;
+        // console.log(entities[0].getComponent(HealthComponent).health);
 
     });
 
@@ -46,7 +43,34 @@ async function preUpdate() {
         EventEmitter.events.trigger('shopSetItem', {
             id: 'coolfrog',
             name: 'The super cool frog',
-            price: 100
+            price: 100,
+            callback: async (itemData) => {
+
+                const frog = new Frog(world, 'frog');
+                currentFrog = frog;
+
+                const handleClick = () => {
+
+                    console.log(currentFrog);
+                    if (currentFrog) {
+
+                        entities.push(currentFrog);
+                        currentFrog = null;
+                        window.removeEventListener('click', handleClick);
+
+                    }
+
+                };
+
+                await new Promise((resolve) => {
+
+                    setTimeout(resolve, 0);
+
+                });
+
+                window.addEventListener('click', handleClick);
+
+            }
         });
         EventEmitter.events.trigger('shopSetItem', {
             id: 'sexyfrog',
@@ -54,7 +78,9 @@ async function preUpdate() {
             price: 120,
             callback: (itemData) => {
 
-                console.log(itemData);
+                const frog = new Frog(world, 'frog');
+                entities.push(frog);
+                frog.getComponent(WorldComponent).position.set(spawnPoint.x, spawnPoint.y);
 
             }
         });
@@ -68,6 +94,12 @@ const bugType = ['fly', 'spider', 'butterfly'];
 let spawnTimer = 5000;
 
 function update(delta, time) {
+
+    if (currentFrog) {
+
+        currentFrog.getComponent(WorldComponent).position.set(Math.round((Global.canvasMousePosition.x - Global.app.view.width / 2) / world.cellSize.x), Math.round((Global.canvasMousePosition.y - Global.app.view.height / 2) / world.cellSize.y));
+
+    }
 
     for (let i = 0; i < entities.length; i++) {
 

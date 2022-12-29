@@ -52,6 +52,12 @@ class Bug extends ECS.Entity {
 
     }
 
+    type() {
+
+        return 'bug';
+
+    }
+
 }
 
 export { Bug };

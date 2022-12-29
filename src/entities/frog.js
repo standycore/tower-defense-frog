@@ -43,6 +43,12 @@ class Frog extends ECS.Entity {
 
     }
 
+    type() {
+
+        return 'frog';
+
+    }
+
 }
 
 export { Frog };
