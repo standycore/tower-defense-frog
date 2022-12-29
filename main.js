@@ -77,7 +77,7 @@ async function main() {
     // might change to normal point later
     const canvasMousePosition = new ObservablePoint(() => {}, this);
     const canvasMouseRelative = new ObservablePoint(() => {}, this);
-    app.view.addEventListener('mousemove', (e) => {
+    window.addEventListener('mousemove', (e) => {
 
         canvasMousePosition.x = e.clientX || e.x || 0;
         canvasMousePosition.y = e.clientY || e.y || 0;
@@ -258,6 +258,8 @@ async function main() {
 
         Global.level = level;
         Global.world = world;
+        Global.canvasMousePosition = canvasMousePosition;
+        Global.app = app;
 
         // path.clear();
 
