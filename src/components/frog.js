@@ -3,10 +3,11 @@ import { EventEmitter } from '$/events';
 
 class FrogComponent extends ECS.Component {
 
-    preUpdate(strength, eatInterval) {
+    preUpdate(strength, eatInterval, range) {
 
         this.strength = strength;
         this.eatInterval = eatInterval;
+        this.range = range;
         this.eatTimer = 0;
 
     }
@@ -15,7 +16,7 @@ class FrogComponent extends ECS.Component {
 
         if (this.eatTimer >= this.eatInterval) {
 
-            EventEmitter.events.trigger('frogEatBug', this.strength);
+            EventEmitter.events.trigger('frogEatBug', this.entity);
             this.eatTimer -= this.eatInterval;
 
         }
