@@ -37,6 +37,13 @@ async function loadAssets() {
     );
     await Assets.load('butterflySheet');
 
+    // Asset for the heart
+    Assets.add(
+        'heart',
+        './assets/pixel-heart.png'
+    );
+    await Assets.load('heart');
+
 }
 
 export { loadAssets };

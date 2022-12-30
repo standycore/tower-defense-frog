@@ -1,4 +1,5 @@
 import { ECS } from '$/ecs';
+import { EventEmitter } from '$/events';
 import { Vector2 } from '$/vector';
 import { WorldComponent } from './world';
 
@@ -16,6 +17,8 @@ class PathFollowerComponent extends ECS.Component {
         // world distance travelled per second
         this.speed = speed;
 
+        this.reachedEnd = false;
+
     }
 
     get position() {
@@ -25,6 +28,12 @@ class PathFollowerComponent extends ECS.Component {
     }
 
     update(delta) {
+
+        if (this.reachedEnd === true) {
+
+            return;
+
+        }
 
         let frameTravelDistance = this.speed * delta * 0.001;
         const currentPoint = new Vector2(this.position);
@@ -36,7 +45,9 @@ class PathFollowerComponent extends ECS.Component {
             // check for reaching end of path
             if (this.index >= this.pathArray.length - 1) {
 
-                this.entity.destroy();
+                // destroys the entity and exits
+                EventEmitter.events.trigger('pathReachEnd', this.entity);
+                this.reachedEnd = true;
                 return;
 
             }
