@@ -26,14 +26,6 @@ class PathFollowerComponent extends ECS.Component {
 
     update(delta) {
 
-        // checks to see if the health is under or at zero, destroys the fly if so
-        if (this.health <= 0) {
-
-            this.entity.destroy();
-            return;
-
-        }
-
         let frameTravelDistance = this.speed * delta * 0.001;
         const currentPoint = new Vector2(this.position);
         // safety escape that prevents infinite loop
