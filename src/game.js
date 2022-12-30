@@ -26,6 +26,7 @@ let spawnPoint;
 let currentFrog;
 let graphics;
 let liveGraphics;
+let lives;
 
 async function preUpdate() {
 
@@ -33,12 +34,20 @@ async function preUpdate() {
 
     // create/get world and level data
     console.log('setting up world and level');
+
+    // sets up global variables
     world = Global.world;
     pathArray = Global.level.pathArray;
     level = Global.level;
+    lives = 25;
+    Global.lives = lives;
     spawnPoint = pathArray[0];
+
+    // sets up graphics
     graphics = new Graphics();
     liveGraphics = new Graphics();
+
+    // adds all the graphics to the world
     world.addChild(graphics);
     world.addChild(liveGraphics);
 
@@ -104,6 +113,14 @@ async function preUpdate() {
             closestBug.getComponent(HealthComponent).health -= frog.getComponent(FrogComponent).strength;
 
         }
+
+    });
+
+    EventEmitter.events.on('pathReachEnd', (bug) => {
+
+        lives -= bug.getComponent(HealthComponent).health;
+        bug.destroy();
+        console.log(lives);
 
     });
 
@@ -280,7 +297,7 @@ function update(delta, time) {
 
     // sets line style to draw red lines
     // this is for the debugging of frogs to see which bug they are targeting (below)
-    liveGraphics.lineStyle(1, 0xFF0000, 1);
+    liveGraphics.lineStyle(2, 0xFF0000, 1);
 
     entities.forEach((entity) => {
 
