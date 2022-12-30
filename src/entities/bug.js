@@ -8,9 +8,13 @@ import { WorldComponent } from 'src/components/world';
 
 class Bug extends ECS.Entity {
 
+    static array = [];
+
     constructor(world, type, pathArray) {
 
         super();
+
+        Bug.array.push(this);
 
         let sprite;
         let speed;
