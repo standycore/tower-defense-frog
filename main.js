@@ -3,7 +3,7 @@ import './style.css';
 
 import { World } from '$/world';
 
-import { Application, Assets, Graphics, ObservablePoint, Sprite } from 'pixi.js';
+import { Application, Assets, Graphics, Sprite } from 'pixi.js';
 import { Stage, Layer } from '@pixi/layers';
 import { GroupMap } from '$/groupMap';
 import { FixedEngine } from '$/engine';
@@ -16,6 +16,7 @@ import { Global } from 'src/global';
 
 import ReactDOM from 'react-dom/client';
 import ReactRoot from 'src/ui/root';
+import { Input } from 'src/input';
 
 async function main() {
 
@@ -72,19 +73,7 @@ async function main() {
     const engine = new FixedEngine();
     engine.start();
 
-    // creates PIXI observable points for the canvas mouse position
-    // this can be used as a global position, not for the world but for the canvas itself
-    // might change to normal point later
-    const canvasMousePosition = new ObservablePoint(() => {}, this);
-    const canvasMouseRelative = new ObservablePoint(() => {}, this);
-    window.addEventListener('mousemove', (e) => {
-
-        canvasMousePosition.x = e.clientX || e.x || 0;
-        canvasMousePosition.y = e.clientY || e.y || 0;
-        canvasMouseRelative.x = e.movementX;
-        canvasMouseRelative.y = e.movementY;
-
-    });
+    Input.initialize(app.view);
 
     const pathGraphics = new Graphics();
     // world.addChild(pathGraphics);
@@ -258,7 +247,6 @@ async function main() {
 
         Global.level = level;
         Global.world = world;
-        Global.canvasMousePosition = canvasMousePosition;
         Global.app = app;
 
         // path.clear();
@@ -287,6 +275,7 @@ async function main() {
     engine.onUpdate((delta, time) => {
 
         Game.update(delta, time);
+        Input.update();
 
     });
 
