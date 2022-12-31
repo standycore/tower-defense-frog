@@ -1,6 +1,9 @@
 .shop-container {
     background-color: beige;
     width: min-content;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .item-container {

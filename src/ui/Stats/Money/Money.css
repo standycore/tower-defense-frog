@@ -1,0 +1,9 @@
+.money {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.text {
+    color: white;
+    font-size: 2rem;
+}

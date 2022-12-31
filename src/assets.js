@@ -40,7 +40,7 @@ async function loadAssets() {
     // Asset for the heart
     Assets.add(
         'heart',
-        './assets/pixel-heart.png'
+        './assets/heart.png'
     );
     await Assets.load('heart');
 
