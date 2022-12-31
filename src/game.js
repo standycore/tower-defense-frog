@@ -119,8 +119,17 @@ async function preUpdate() {
     EventEmitter.events.on('pathReachEnd', (bug) => {
 
         lives -= bug.getComponent(HealthComponent).health;
+        EventEmitter.events.trigger('uiSetLives', lives);
+
         bug.destroy();
-        console.log(lives);
+
+    });
+
+    // set lives in ui
+    EventEmitter.events.on('uiLivesReady', () => {
+
+        console.log('setting up lives');
+        EventEmitter.events.trigger('uiSetLives', lives);
 
     });
 
