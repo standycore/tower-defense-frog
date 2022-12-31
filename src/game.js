@@ -29,6 +29,8 @@ let graphics;
 let liveGraphics;
 let lives;
 let money;
+let spawnInterval;
+let bugCount;
 
 async function preUpdate() {
 
@@ -44,6 +46,8 @@ async function preUpdate() {
     lives = 25;
     money = 100;
     spawnPoint = pathArray[0];
+    spawnInterval = 2500;
+    bugCount = 6;
 
     // sets up graphics
     graphics = new Graphics();
@@ -344,9 +348,11 @@ function update(delta, time) {
     }
 
     // timer to spawn bugs
-    if (spawnTimer >= 2500) {
+    if (spawnTimer >= spawnInterval) {
 
-        spawnTimer -= 2500;
+        console.log(spawnInterval);
+        console.log(bugCount);
+        spawnTimer -= spawnInterval;
 
         const randomIndex = Math.floor(Math.random() * bugType.length);
         const bug = new Bug(world, bugType[randomIndex], pathArray);
@@ -354,6 +360,19 @@ function update(delta, time) {
         entities.push(bug);
 
         bug.getComponent(WorldComponent).position.set(spawnPoint.x, spawnPoint.y);
+
+        if (bugCount <= 0 && spawnInterval > 250) {
+
+            spawnInterval -= 50;
+            bugCount = 6;
+
+        }
+
+        if (bugCount > 0) {
+
+            bugCount -= 1;
+
+        }
 
     }
 

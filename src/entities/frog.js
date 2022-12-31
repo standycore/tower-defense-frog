@@ -35,7 +35,7 @@ class Frog extends ECS.Entity {
 
             sprite = new CustomSprite(Assets.get('fastFrogSheet'));
             eatInterval = 750;
-            strength = 1;
+            strength = 0.75;
             range = 3;
 
         }
