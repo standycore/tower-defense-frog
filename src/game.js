@@ -24,9 +24,11 @@ let pathArray;
 let level;
 let spawnPoint;
 let currentFrog;
+let currentPrice;
 let graphics;
 let liveGraphics;
 let lives;
+let money;
 
 async function preUpdate() {
 
@@ -40,7 +42,7 @@ async function preUpdate() {
     pathArray = Global.level.pathArray;
     level = Global.level;
     lives = 25;
-    Global.lives = lives;
+    money = 100;
     spawnPoint = pathArray[0];
 
     // sets up graphics
@@ -133,30 +135,76 @@ async function preUpdate() {
 
     });
 
+    // set money in ui
+    EventEmitter.events.on('uiMoneyReady', () => {
+
+        console.log('setting up money');
+        EventEmitter.events.trigger('uiSetMoney', money);
+
+    });
+
+    // adds money on bug death
+    EventEmitter.events.on('bugDied', (bug) => {
+
+        money += bug.worth;
+        EventEmitter.events.trigger('uiSetMoney', money);
+
+    });
+
     // fill shop
     EventEmitter.events.on('shopReady', () => {
 
         console.log('setting up shop');
         EventEmitter.events.trigger('shopSetItem', {
-            id: 'coolfrog',
-            name: 'The super cool frog',
+            id: 'frog',
+            name: 'Froggy',
             price: 100,
             callback: (itemData) => {
 
-                const frog = new Frog(world, 'frog');
+                if (currentFrog) {
+
+                    currentFrog.destroy();
+                    const type = currentFrog.type;
+                    currentFrog = null;
+
+                    if (type === itemData.id) {
+
+                        return;
+
+                    }
+
+                }
+
+                const frog = new Frog(world, itemData.id);
                 currentFrog = frog;
+                currentPrice = itemData.price;
 
             }
         });
 
         EventEmitter.events.trigger('shopSetItem', {
-            id: 'sexyfrog',
-            name: 'The super sexy frog',
+            id: 'fast-frog',
+            name: 'Fast Froggy',
             price: 120,
             callback: (itemData) => {
 
-                const frog = new Frog(world, 'fast-frog');
+                if (currentFrog) {
+
+                    currentFrog.destroy();
+                    const type = currentFrog.type;
+                    currentFrog = null;
+
+                    if (type === itemData.id) {
+
+                        return;
+
+                    }
+
+                }
+
+                const frog = new Frog(world, itemData.id);
                 currentFrog = frog;
+                currentPrice = itemData.price;
 
             }
 
@@ -176,7 +224,7 @@ function update(delta, time) {
     // must be cleared every frame so previous frame's drawings dont stick
     liveGraphics.clear();
 
-    if (currentFrog) {
+    if (currentFrog && !currentFrog.destroyed) {
 
         const frogComponent = currentFrog.getComponent(FrogComponent);
         const frogWorldComponent = currentFrog.getComponent(WorldComponent);
@@ -218,6 +266,12 @@ function update(delta, time) {
 
             }
 
+            if (money < currentPrice) {
+
+                validCell = false;
+
+            }
+
         }
 
         // sets the circle color of the moving circle based on whether it is a valid cell or not
@@ -250,6 +304,9 @@ function update(delta, time) {
 
             // make currentFrog null to clear the mouse selection
             currentFrog = null;
+
+            money -= currentPrice;
+            EventEmitter.events.trigger('uiSetMoney', money);
 
         }
 

@@ -21,19 +21,20 @@ class Frog extends ECS.Entity {
         let eatInterval = 0;
         let strength = 0;
         let range = 0;
+        this.type = type;
 
         // changes the sprite, strength, and eatInterval depending on the type of frog
         if (type === 'frog') {
 
             sprite = new CustomSprite(Assets.get('frogSheet'));
-            eatInterval = 2500;
+            eatInterval = 1000;
             strength = 1;
             range = 4;
 
         } else if (type === 'fast-frog') {
 
-            sprite = new CustomSprite(Assets.get('frogSheet'));
-            eatInterval = 1000;
+            sprite = new CustomSprite(Assets.get('fastFrogSheet'));
+            eatInterval = 750;
             strength = 1;
             range = 3;
 

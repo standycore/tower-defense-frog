@@ -1,4 +1,5 @@
 import { ECS } from '$/ecs';
+import { EventEmitter } from '$/events';
 
 class HealthComponent extends ECS.Component {
 
@@ -13,6 +14,7 @@ class HealthComponent extends ECS.Component {
         if (this.health <= 0) {
 
             this.entity.destroy();
+            EventEmitter.events.trigger('bugDied', this.entity);
 
         }
 
