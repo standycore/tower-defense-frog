@@ -224,6 +224,12 @@ let spawnTimer = 5000;
 
 function update(delta, time) {
 
+    if (lives <= 0) {
+
+        return;
+
+    }
+
     // clears the live graphics to be updated below
     // must be cleared every frame so previous frame's drawings dont stick
     liveGraphics.clear();
