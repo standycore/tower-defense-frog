@@ -1,4 +1,5 @@
-import { Assets } from 'pixi.js';
+import { Assets, Graphics, RenderTexture } from 'pixi.js';
+import { Global } from './global';
 
 async function loadAssets() {
 
@@ -50,6 +51,33 @@ async function loadAssets() {
         './assets/heart.png'
     );
     await Assets.load('heart');
+
+    // generated circle asset
+    // here i am testing using a sprite as a circle
+    // it draws a circle using graphics then renders it onto a texture
+    {
+
+        const graphics = new Graphics();
+        graphics.beginFill(0xFFFFFF, 1);
+        graphics.drawCircle(50, 50, 50);
+
+        // render texture created
+        const renderTexture = RenderTexture.create({ width: 100, height: 100 });
+
+        // render graphics to render texture
+        Global.app.renderer.render(graphics, { renderTexture });
+
+        // create sprite and set anchor/origin to .5
+        // const sprite = Sprite.from(renderTexture);
+        // sprite.anchor.set(0.5);
+
+        // add circle to asset cache
+        // it can be received with Assets.get('circle');
+        Assets.cache.set('circle', renderTexture);
+
+        graphics.destroy();
+
+    }
 
 }
 

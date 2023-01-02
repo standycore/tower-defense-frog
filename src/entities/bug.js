@@ -8,18 +8,14 @@ import { WorldComponent } from 'src/components/world';
 
 class Bug extends ECS.Entity {
 
-    static array = [];
-
     constructor(world, type, pathArray) {
 
         super();
 
-        Bug.array.push(this);
-
         let sprite;
         let speed;
         let health;
-        this.worth;
+        this.worth = 0;
 
         // changes the sprite, the health, and the move speed of the fly based on the type
         if (type === 'fly') {

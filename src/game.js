@@ -1,7 +1,7 @@
 import { ECS } from '$/ecs';
 import { EventEmitter } from '$/events';
 import { Vector2 } from '$/vector';
-import { Graphics, RenderTexture, Sprite } from 'pixi.js';
+import { Graphics } from 'pixi.js';
 import { loadAssets } from './assets';
 import { FrogComponent } from './components/frog';
 import { HealthComponent } from './components/health';
@@ -18,19 +18,27 @@ async function load() {
 
 }
 
-const entities = [];
 let world;
 let pathArray;
 let level;
+
+const bugType = ['fly', 'spider', 'butterfly'];
+
+let spawnTimer;
+let spawnInterval;
 let spawnPoint;
+
 let currentFrog;
 let currentPrice;
+
 let graphics;
 let liveGraphics;
 let lives;
 let money;
-let spawnInterval;
+
 let bugCount;
+let bugs;
+let frogs;
 
 async function preUpdate() {
 
@@ -47,7 +55,10 @@ async function preUpdate() {
     money = 100;
     spawnPoint = pathArray[0];
     spawnInterval = 2500;
+    spawnTimer = 2500;
     bugCount = 6;
+    bugs = [];
+    frogs = [];
 
     // sets up graphics
     graphics = new Graphics();
@@ -57,45 +68,15 @@ async function preUpdate() {
     world.addChild(graphics);
     world.addChild(liveGraphics);
 
-    // here i am testing using a sprite as a circle
-    // it draws a circle using graphics then renders it onto a texture
-    // the texture is used to create a sprite, which is then added to the world
-    // change the condition below to true to see it
-    // eslint-disable-next-line no-constant-condition
-    if (false) {
-
-        graphics.beginFill(0xFFFFFF, 1);
-        graphics.drawCircle(50, 50, 50);
-
-        // render texture created
-        const renderTexture = RenderTexture.create({ width: 100, height: 100 });
-
-        // render graphics to render texture
-        Global.app.renderer.render(graphics, { renderTexture });
-
-        // create sprite and set anchor/origin to .5
-        const sprite = Sprite.from(renderTexture);
-        sprite.anchor.set(0.5);
-
-        // add to world
-        world.addChild(sprite);
-
-        // wow did you know, sprites also have an alpha property, which lets them be semi transparent
-        sprite.alpha = 0.5;
-
-        graphics.clear();
-
-    }
-
     // Event that controlls the frog eat action
     EventEmitter.events.on('frogEatBug', (frog) => {
 
         // finds the closest bug to the frog and is furthest on the path and is in range of frog
         let closestBug;
         let furthestPath = 0;
-        for (let i = 0; i < Bug.array.length; i++) {
+        for (let i = 0; i < bugs.length; i++) {
 
-            const bug = Bug.array[i];
+            const bug = bugs[i];
 
             if (bug.destroyed) {
 
@@ -159,68 +140,47 @@ async function preUpdate() {
     EventEmitter.events.on('shopReady', () => {
 
         console.log('setting up shop');
+
+        const handleClick = (itemData) => {
+
+            if (currentFrog) {
+
+                currentFrog.destroy();
+                const type = currentFrog.type;
+                currentFrog = null;
+
+                if (type === itemData.id) {
+
+                    return;
+
+                }
+
+            }
+
+            const frog = new Frog(world, itemData.id);
+            frog.active = false;
+            currentFrog = frog;
+            currentPrice = itemData.price;
+
+        };
+
         EventEmitter.events.trigger('shopSetItem', {
             id: 'frog',
             name: 'Froggy',
             price: 100,
-            callback: (itemData) => {
-
-                if (currentFrog) {
-
-                    currentFrog.destroy();
-                    const type = currentFrog.type;
-                    currentFrog = null;
-
-                    if (type === itemData.id) {
-
-                        return;
-
-                    }
-
-                }
-
-                const frog = new Frog(world, itemData.id);
-                currentFrog = frog;
-                currentPrice = itemData.price;
-
-            }
+            callback: handleClick
         });
 
         EventEmitter.events.trigger('shopSetItem', {
             id: 'fast-frog',
             name: 'Fast Froggy',
             price: 120,
-            callback: (itemData) => {
-
-                if (currentFrog) {
-
-                    currentFrog.destroy();
-                    const type = currentFrog.type;
-                    currentFrog = null;
-
-                    if (type === itemData.id) {
-
-                        return;
-
-                    }
-
-                }
-
-                const frog = new Frog(world, itemData.id);
-                currentFrog = frog;
-                currentPrice = itemData.price;
-
-            }
-
+            callback: handleClick
         });
 
     });
 
 }
-
-const bugType = ['fly', 'spider', 'butterfly'];
-
-let spawnTimer = 5000;
 
 function update(delta, time) {
 
@@ -299,8 +259,10 @@ function update(delta, time) {
         if (Input.justClicked() && validCell) {
 
             // pushes the currentFrog to the entities array
+            frogs.push(currentFrog);
+
             // this allows it to start updating
-            entities.push(currentFrog);
+            currentFrog.active = true;
 
             // draws a "permanent" light black circle around the frog indicating its bug eating range
             graphics.beginFill(0x000000, 0.1);
@@ -323,30 +285,16 @@ function update(delta, time) {
     }
 
     // updates all entities in the entities array and removes them from the array if they are destroyed every frame
-    for (let i = 0; i < entities.length; i++) {
-
-        const entity = entities[i];
-        if (entity.destroyed) {
-
-            entities.splice(i, 1);
-            i -= 1;
-
-        } else {
-
-            ECS.updateEntity(entity, delta, time);
-
-        }
-
-    }
+    ECS.update(delta, time);
 
     // removes bugs from the bugs array when they are destroyed
     // this might be changed to a better way in the future
-    for (let i = 0; i < Bug.array.length; i++) {
+    for (let i = 0; i < bugs.length; i++) {
 
-        const bug = Bug.array[i];
+        const bug = bugs[i];
         if (bug.destroyed) {
 
-            Bug.array.splice(i, 1);
+            bugs.splice(i, 1);
             i -= 1;
 
         }
@@ -363,9 +311,9 @@ function update(delta, time) {
         const randomIndex = Math.floor(Math.random() * bugType.length);
         const bug = new Bug(world, bugType[randomIndex], pathArray);
 
-        entities.push(bug);
-
         bug.getComponent(WorldComponent).position.set(spawnPoint.x, spawnPoint.y);
+
+        bugs.push(bug);
 
         if (bugCount <= 0 && spawnInterval > 250) {
 
@@ -390,44 +338,39 @@ function update(delta, time) {
     // this is for the debugging of frogs to see which bug they are targeting (below)
     liveGraphics.lineStyle(2, 0xFF0000, 1);
 
-    entities.forEach((entity) => {
+    frogs.forEach((frog) => {
 
-        if (entity instanceof Frog) {
+        let closestBug;
+        let furthestPath = 0;
+        for (let i = 0; i < bugs.length; i++) {
 
-            const frog = entity;
+            const bug = bugs[i];
 
-            let closestBug;
-            let furthestPath = 0;
-            for (let i = 0; i < Bug.array.length; i++) {
+            const distance = Vector2.distanceBetweenVectors(bug.getComponent(WorldComponent).position, frog.getComponent(WorldComponent).position);
+            const index = bug.getComponent(PathFollowerComponent).index;
+            if (distance <= frog.getComponent(FrogComponent).range && (!closestBug || (index > furthestPath))) {
 
-                const bug = Bug.array[i];
-
-                const distance = Vector2.distanceBetweenVectors(bug.getComponent(WorldComponent).position, frog.getComponent(WorldComponent).position);
-                const index = bug.getComponent(PathFollowerComponent).index;
-                if (distance <= frog.getComponent(FrogComponent).range && (!closestBug || (index > furthestPath))) {
-
-                    furthestPath = index;
-                    closestBug = bug;
-
-                }
+                furthestPath = index;
+                closestBug = bug;
 
             }
-
-            if (!closestBug) {
-
-                return;
-
-            }
-
-            const a = world.worldToCanvasPosition(frog.getComponent(WorldComponent).position);
-            liveGraphics.moveTo(a.x, a.y);
-
-            const b = world.worldToCanvasPosition(closestBug.getComponent(WorldComponent).position);
-            liveGraphics.lineTo(b.x, b.y);
 
         }
 
-    });
+        if (!closestBug) {
+
+            return;
+
+        }
+
+        const a = world.worldToCanvasPosition(frog.getComponent(WorldComponent).position);
+        liveGraphics.moveTo(a.x, a.y);
+
+        const b = world.worldToCanvasPosition(closestBug.getComponent(WorldComponent).position);
+        liveGraphics.lineTo(b.x, b.y);
+
+    }
+    );
 
 }
 
