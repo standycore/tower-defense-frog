@@ -1,10 +1,23 @@
 import { ECS } from '$/ecs';
+import { Sprite } from 'pixi.js';
 
 class SpriteComponent extends ECS.Component {
 
     preUpdate(sprite) {
 
+        if (!(sprite instanceof Sprite)) {
+
+            sprite = this.spriteConstructor(sprite);
+
+        }
+
         this.sprite = sprite;
+
+    }
+
+    spriteConstructor(source) {
+
+        return Sprite.from(source);
 
     }
 
