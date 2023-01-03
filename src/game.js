@@ -7,10 +7,9 @@ import { FrogComponent } from './components/frog';
 import { HealthComponent } from './components/health';
 import { WorldComponent } from './components/world';
 import { PathFollowerComponent } from './components/pathFollower';
-import { Bug } from './entities/bug';
-import { Frog } from './entities/frog';
 import { Global } from './global';
 import { Input } from './input';
+import { BugComponent } from './components/bug';
 
 async function load() {
 
@@ -22,11 +21,50 @@ let world;
 let pathArray;
 let level;
 
-const bugType = ['fly', 'spider', 'butterfly'];
+const bugTypes = {
+    fly: {
+        health: 1,
+        speed: 2,
+        worth: 10,
+        assetSource: 'flySheet'
+    },
+    spider: {
+        health: 5,
+        speed: 1,
+        worth: 30,
+        assetSource: 'spiderSheet'
+    },
+    butterfly: {
+        health: 3,
+        speed: 3,
+        worth: 20,
+        assetSource: 'butterflySheet'
+    }
+};
+
+const frogTypes = {
+    frog: {
+        id: 'frog',
+        name: 'Froggy',
+        price: 100,
+        assetSource: 'frogSheet',
+        eatInterval: 1000,
+        strength: 1,
+        range: 4
+    },
+    'fast-frog': {
+        id: 'fast-frog',
+        name: 'Fast Froggy',
+        price: 120,
+        assetSource: 'fastFrogSheet',
+        eatInterval: 750,
+        strength: 0.75,
+        range: 3
+    }
+};
 
 let spawnTimer;
 let spawnInterval;
-let spawnPoint;
 
 let currentFrog;
 let currentPrice;
@@ -39,6 +77,44 @@ let money;
 let bugCount;
 let bugs;
 let frogs;
+
+/**
+ * creates a frog based on the id
+ * @param {string} id the type of frog
+ * @returns {ECS.Entity}
+ */
+function createFrog(id) {
+
+    if (!frogTypes[id]) {
+
+        return;
+
+    }
+
+    const frog = ECS.createEntity();
+    frog.addComponent(FrogComponent, world, frogTypes[id]);
+    return frog;
+
+}
+
+/**
+ * creates a bug based on the id
+ * @param {string} id the type of bug
+ * @returns {ECS.Entity}
+ */
+function createBug(id) {
+
+    if (!bugTypes[id]) {
+
+        return;
+
+    }
+
+    const bug = ECS.createEntity();
+    bug.addComponent(BugComponent, world, pathArray, bugTypes[id]);
+    return bug;
+
+}
 
 async function preUpdate() {
 
@@ -53,7 +129,6 @@ async function preUpdate() {
     level = Global.level;
     lives = 25;
     money = 100;
-    spawnPoint = pathArray[0];
     spawnInterval = 2500;
     spawnTimer = 2500;
     bugCount = 6;
@@ -131,7 +206,7 @@ async function preUpdate() {
     // adds money on bug death
     EventEmitter.events.on('bugDied', (bug) => {
 
-        money += bug.worth;
+        money += bug.getComponent(BugComponent).worth;
         EventEmitter.events.trigger('uiSetMoney', money);
 
     });
@@ -145,11 +220,11 @@ async function preUpdate() {
 
             if (currentFrog) {
 
+                const id = currentFrog.getComponent(FrogComponent).id;
                 currentFrog.destroy();
-                const type = currentFrog.type;
                 currentFrog = null;
 
-                if (type === itemData.id) {
+                if (id === itemData.id) {
 
                     return;
 
@@ -157,25 +232,22 @@ async function preUpdate() {
 
             }
 
-            const frog = new Frog(world, itemData.id);
+            const frog = createFrog(itemData.id);// new Frog(world, itemData.id);
             frog.active = false;
             currentFrog = frog;
             currentPrice = itemData.price;
 
         };
 
-        EventEmitter.events.trigger('shopSetItem', {
-            id: 'frog',
-            name: 'Froggy',
-            price: 100,
-            callback: handleClick
-        });
+        Object.entries(frogTypes).forEach(([id, { name, price }]) => {
 
-        EventEmitter.events.trigger('shopSetItem', {
-            id: 'fast-frog',
-            name: 'Fast Froggy',
-            price: 120,
-            callback: handleClick
+            EventEmitter.events.trigger('shopSetItem', {
+                id,
+                name,
+                price,
+                callback: handleClick
+            });
+
         });
 
     });
@@ -308,10 +380,9 @@ function update(delta, time) {
         console.log(bugCount);
         spawnTimer -= spawnInterval;
 
-        const randomIndex = Math.floor(Math.random() * bugType.length);
-        const bug = new Bug(world, bugType[randomIndex], pathArray);
-
-        bug.getComponent(WorldComponent).position.set(spawnPoint.x, spawnPoint.y);
+        const bugTypeIds = Object.keys(bugTypes);
+        const randomIndex = Math.floor(Math.random() * bugTypeIds.length);
+        const bug = createBug(bugTypeIds[randomIndex]);
 
         bugs.push(bug);
 
