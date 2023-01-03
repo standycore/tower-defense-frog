@@ -19,6 +19,8 @@ class PathFollowerComponent extends ECS.Component {
 
         this.reachedEnd = false;
 
+        this.events = new EventEmitter();
+
     }
 
     get position() {
@@ -45,8 +47,7 @@ class PathFollowerComponent extends ECS.Component {
             // check for reaching end of path
             if (this.index >= this.pathArray.length - 1) {
 
-                // destroys the entity and exits
-                EventEmitter.events.trigger('pathReachEnd', this.entity);
+                this.events.trigger('end', this);
                 this.reachedEnd = true;
                 return;
 
