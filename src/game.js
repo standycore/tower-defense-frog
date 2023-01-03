@@ -409,26 +409,25 @@ function update(delta, time) {
 
     // sets line style to draw red lines
     // this is for the debugging of frogs to see which bug they are targeting (below)
-    liveGraphics.lineStyle(2, 0xFF0000, 1);
+    // liveGraphics.lineStyle(2, 0xFF0000, 1);
 
-    frogs.forEach((frog) => {
+    // frogs.forEach((frog) => {
 
-        const closestBug = frog.getComponent(FrogComponent).getClosestBug(bugs);
+    //     const closestBug = frog.getComponent(FrogComponent).getClosestBug(bugs);
 
-        if (!closestBug) {
+    //     if (!closestBug) {
 
-            return;
+    //         return;
 
-        }
+    //     }
 
-        const a = world.worldToCanvasPosition(frog.getComponent(WorldComponent).position);
-        liveGraphics.moveTo(a.x, a.y);
+    //     const a = world.worldToCanvasPosition(frog.getComponent(WorldComponent).position);
+    //     liveGraphics.moveTo(a.x, a.y);
 
-        const b = world.worldToCanvasPosition(closestBug.getComponent(WorldComponent).position);
-        liveGraphics.lineTo(b.x, b.y);
+    //     const b = world.worldToCanvasPosition(closestBug.getComponent(WorldComponent).position);
+    //     liveGraphics.lineTo(b.x, b.y);
 
-    }
-    );
+    // });
 
 }
 
