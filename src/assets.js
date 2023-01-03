@@ -1,4 +1,4 @@
-import { Assets, Graphics, RenderTexture } from 'pixi.js';
+import { Assets, BitmapFont, Graphics, RenderTexture } from 'pixi.js';
 import { Global } from './global';
 
 async function loadAssets() {
@@ -78,6 +78,14 @@ async function loadAssets() {
         graphics.destroy();
 
     }
+
+    // load bitmap fonts
+    BitmapFont.from('Arial', {
+        fontFamily: 'Arial',
+        fontSize: 30,
+        strokeThickness: 2,
+        fill: 'white'
+    });
 
 }
 
