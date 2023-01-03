@@ -82,7 +82,7 @@ async function loadAssets() {
     // load bitmap fonts
     BitmapFont.from('Arial', {
         fontFamily: 'Arial',
-        fontSize: 30,
+        fontSize: 16,
         strokeThickness: 2,
         fill: 'white'
     });
