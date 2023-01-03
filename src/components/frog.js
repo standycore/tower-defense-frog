@@ -2,6 +2,7 @@ import { ECS } from '$/ecs';
 import { EventEmitter } from '$/events';
 import { Assets } from 'pixi.js';
 import { CustomSpriteComponent } from './customSprite';
+import { LabelComponent } from './label';
 import { WorldComponent } from './world';
 
 class FrogComponent extends ECS.Component {
@@ -31,6 +32,9 @@ class FrogComponent extends ECS.Component {
         });
 
         this.entity.addComponent(WorldComponent, world);
+
+        // debug label
+        this.entity.addComponent(LabelComponent, world, 'frog', { target: this.entity.getComponent(CustomSpriteComponent).sprite.position });
 
     }
 
