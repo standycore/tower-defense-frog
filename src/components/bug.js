@@ -18,6 +18,8 @@ class BugComponent extends ECS.Component {
         this.speed = speed;
         this.worth = worth;
 
+        this.state = 'alive';
+
         const spriteSource = Assets.get(assetSource);
 
         this.entity.addComponent(CustomSpriteComponent, spriteSource, (sprite) => {
@@ -29,18 +31,32 @@ class BugComponent extends ECS.Component {
             sprite.height = world.cellSize.y;
             world.addChild(sprite);
 
+            this.sprite = sprite;
+
         });
 
         this.entity.addComponent(WorldComponent, world).position.set(
             pathArray[0].x,
             pathArray[0].y
         );
-        this.entity.addComponent(HealthComponent, this.health).events.on('death', () => {
+        this.healthComponent = this.entity.addComponent(HealthComponent, this.health);
+        this.healthComponent.destroyOnDeath = false;
+        this.healthComponent.events.on('death', () => {
+
+            this.state = 'dying';
+            this.pathFollowerComponent.active = false;
 
             EventEmitter.events.trigger('bugDied', this.entity);
 
         });
-        this.entity.addComponent(PathFollowerComponent, pathArray, this.speed);
+
+        this.pathFollowerComponent = this.entity.addComponent(PathFollowerComponent, pathArray, this.speed);
+        this.pathFollowerComponent.events.on('end', () => {
+
+            this.state = 'done';
+            EventEmitter.events.trigger('bugReachedEnd', this.entity);
+
+        });
 
     }
 
