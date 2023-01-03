@@ -48,7 +48,8 @@ const frogTypes = {
         name: 'Froggy',
         price: 100,
         assetSource: 'frogSheet',
-        eatInterval: 1000,
+        attackInterval: 1000,
+        baseEatDuration: 2000, // how long it takes to chew food
         strength: 1,
         range: 4
     },
@@ -57,7 +58,8 @@ const frogTypes = {
         name: 'Fast Froggy',
         price: 120,
         assetSource: 'fastFrogSheet',
-        eatInterval: 750,
+        attackInterval: 600,
+        baseEatDuration: 2000,
         strength: 0.75,
         range: 3
     }
@@ -92,7 +94,7 @@ function createFrog(id) {
     }
 
     const frog = ECS.createEntity();
-    frog.addComponent(FrogComponent, world, frogTypes[id]);
+    frog.addComponent(FrogComponent, world, bugs, frogTypes[id]);
     return frog;
 
 }
@@ -178,7 +180,7 @@ async function preUpdate() {
 
     });
 
-    EventEmitter.events.on('pathReachEnd', (bug) => {
+    EventEmitter.events.on('bugReachedEnd', (bug) => {
 
         lives -= bug.getComponent(HealthComponent).health;
         EventEmitter.events.trigger('uiSetLives', lives);
@@ -411,22 +413,7 @@ function update(delta, time) {
 
     frogs.forEach((frog) => {
 
-        let closestBug;
-        let furthestPath = 0;
-        for (let i = 0; i < bugs.length; i++) {
-
-            const bug = bugs[i];
-
-            const distance = Vector2.distanceBetweenVectors(bug.getComponent(WorldComponent).position, frog.getComponent(WorldComponent).position);
-            const index = bug.getComponent(PathFollowerComponent).index;
-            if (distance <= frog.getComponent(FrogComponent).range && (!closestBug || (index > furthestPath))) {
-
-                furthestPath = index;
-                closestBug = bug;
-
-            }
-
-        }
+        const closestBug = frog.getComponent(FrogComponent).getClosestBug(bugs);
 
         if (!closestBug) {
 
