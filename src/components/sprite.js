@@ -3,7 +3,7 @@ import { Sprite } from 'pixi.js';
 
 class SpriteComponent extends ECS.Component {
 
-    preUpdate(sprite) {
+    preUpdate(sprite, callback = () => {}) {
 
         if (!(sprite instanceof Sprite)) {
 
@@ -12,6 +12,8 @@ class SpriteComponent extends ECS.Component {
         }
 
         this.sprite = sprite;
+
+        callback(sprite);
 
     }
 
