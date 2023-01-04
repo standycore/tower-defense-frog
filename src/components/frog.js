@@ -25,7 +25,7 @@ class FrogComponent extends ECS.Component {
         this.baseEatDuration = eatDuration || 2000;
         this.eatDuration = 0;
         this.eatTimer = 0;
-        this.eatBug = undefined;
+        this.eatingBug = undefined;
 
         this.state = 'attacking';
 
@@ -106,40 +106,92 @@ class FrogComponent extends ECS.Component {
 
     }
 
+    /**
+     * gets targeted bugs based on your own rules. called in update
+     * @param {Array<ECS.Entity>} bugs array of all bugs in the world
+     * @returns {Array<ECS.Entity>} array of targeted bugs
+     */
+    getTargetBugs(bugs) {
+
+        const closestBug = this.getClosestBug(bugs);
+        return closestBug ? [closestBug] : [];
+
+    }
+
+    /**
+     * eats the bug entity, setting state and playing tongue animation
+     * @param {ECS.Entity} bug
+     */
+    eatBug(bug) {
+
+        // eat bug with animation
+        this.state = 'eating';
+        this.eatDuration = this.baseEatDuration;
+        this.eatTimer = 0;
+        if (this.eatingBug) {
+
+            this.eatingBug.destroy();
+
+        }
+
+        this.eatingBug = bug;
+        this.tongueTimer = 100;
+
+    }
+
+    /**
+     * called when an inidividual bug is being attacked
+     * @param {ECS.Entity} bug the bug being attacked
+     * @param {int} i the index of the bug
+     * @param {Array<ECS.Entity>} targets array of all targeted bugs
+     */
+    onAttack(bug, i, targets) {
+
+        const bugComponent = bug.getComponent(BugComponent);
+        this.tongueTipStart.set(bugComponent.sprite.position);
+        this.tongueTip.position.set(this.tongueTipStart.x, this.tongueTipStart.y);
+        this.tongueTimer = 200;
+
+        bugComponent.healthComponent.health -= this.strength;
+
+        if (bugComponent.healthComponent.health <= 0) {
+
+            // eat bug with animation
+            this.eatBug(bug);
+
+        }
+
+    }
+
+    /**
+     * called when an array of bugs is being attacked. either this or onAttack can be used.
+     * @param {Array<ECS.Entity>} targets array of all targeted bugs
+     */
+    onAttackAll(targets) {
+
+    }
+
     update(delta) {
 
         if (this.state === 'attacking') {
 
             if (this.attackTimer >= this.attackInterval) {
 
-                const closestBug = this.getClosestBug(this.bugs);
-                if (closestBug) {
+                const targets = this.getTargetBugs(this.bugs);
 
-                    const bugComponent = closestBug.getComponent(BugComponent);
-                    this.tongueTipStart.set(bugComponent.sprite.position);
-                    this.tongueTip.position.set(this.tongueTipStart.x, this.tongueTipStart.y);
-                    this.tongueTimer = 200;
+                this.onAttackAll(targets);
 
-                    bugComponent.healthComponent.health -= this.strength;
+                for (let i = 0; i < targets.length; i++) {
 
-                    if (bugComponent.healthComponent.health <= 0) {
+                    const bug = targets[i];
 
-                        // eat bug with animation
-                        this.state = 'eating';
-                        this.eatDuration = this.baseEatDuration;
-                        this.eatTimer = 0;
-                        if (this.eatBug) {
+                    this.events.trigger('attack', bug, i, targets);
 
-                            this.eatBug.destroy();
+                    this.onAttack(bug, i, targets);
 
-                        }
+                }
 
-                        this.eatBug = closestBug;
-                        this.tongueTimer = 100;
-
-                    }
-
-                    // closestBug.destroy();
+                if (targets.length > 0) {
 
                     this.attackTimer -= this.attackInterval;
 
@@ -150,15 +202,15 @@ class FrogComponent extends ECS.Component {
         } else if (this.state === 'eating') {
 
             // this is for making the bug follow the tongue tip
-            if (this.eatBug) {
+            if (this.eatingBug) {
 
-                if (this.eatBug.destroyed) {
+                if (this.eatingBug.destroyed) {
 
-                    this.eatBug = undefined;
+                    this.eatingBug = undefined;
 
                 } else {
 
-                    const bugComponent = this.eatBug.getComponent(BugComponent);
+                    const bugComponent = this.eatingBug.getComponent(BugComponent);
                     bugComponent.sprite.position.set(
                         this.tongueTip.position.x,
                         this.tongueTip.position.y
@@ -166,8 +218,8 @@ class FrogComponent extends ECS.Component {
 
                     if (this.tongueTimer <= 0) {
 
-                        this.eatBug.destroy();
-                        this.eatBug = undefined;
+                        this.eatingBug.destroy();
+                        this.eatingBug = undefined;
 
                     }
 
