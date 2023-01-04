@@ -23,7 +23,7 @@ export default function Money() {
 
     return (
         <div className="money">
-            <img src="./assets/coin.png" alt="Coin" />
+            <img src="./assets/coin.png" alt="Coin" width={32} height={32} />
             <div className="text">
                 {`x${money}`}
             </div>
