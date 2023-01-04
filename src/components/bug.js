@@ -20,6 +20,9 @@ class BugComponent extends ECS.Component {
 
         this.state = 'alive';
 
+        /** @type {import('$/customSprite').CustomSprite} */
+        this.sprite = undefined;
+
         const spriteSource = Assets.get(assetSource);
 
         this.entity.addComponent(CustomSpriteComponent, spriteSource, (sprite) => {
@@ -46,6 +49,8 @@ class BugComponent extends ECS.Component {
 
             this.state = 'dying';
             this.pathFollowerComponent.active = false;
+
+            this.sprite.stop();
 
             EventEmitter.events.trigger('bugDied', this.entity);
 
