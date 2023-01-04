@@ -5,7 +5,6 @@ import { Assets, Sprite, Texture } from 'pixi.js';
 import { BugComponent } from './bug';
 import { CustomSpriteComponent } from './customSprite';
 import { LabelComponent } from './label';
-import { PathFollowerComponent } from './pathFollower';
 import { WorldComponent } from './world';
 
 class FrogComponent extends ECS.Component {
@@ -83,16 +82,17 @@ class FrogComponent extends ECS.Component {
         for (let i = 0; i < bugs.length; i++) {
 
             const bug = bugs[i];
-            const bugComponent = bug.getComponent(BugComponent);
 
-            if (bug.destroyed || (bugComponent.state !== 'alive' && bugComponent.state !== 'dying')) {
+            if (bug.destroyed) {
 
                 continue;
 
             }
 
-            const distance = Vector2.distanceBetweenVectors(bug.getComponent(WorldComponent).position, this.worldComponent.position);
-            const index = bug.getComponent(PathFollowerComponent).index;
+            const bugComponent = bug.getComponent(BugComponent);
+
+            const distance = Vector2.distanceBetweenVectors(bugComponent.worldComponent.position, this.worldComponent.position);
+            const index = bugComponent.pathFollowerComponent.index;
             if (distance <= this.range && (!closestBug || (index > furthestPath))) {
 
                 furthestPath = index;
@@ -124,6 +124,12 @@ class FrogComponent extends ECS.Component {
      */
     eatBug(bug) {
 
+        if (bug.eatenBy) {
+
+            return;
+
+        }
+
         // eat bug with animation
         this.state = 'eating';
         this.eatDuration = this.baseEatDuration;
@@ -134,8 +140,12 @@ class FrogComponent extends ECS.Component {
 
         }
 
+        bug.eatenBy = this.entity;
+
         this.eatingBug = bug;
         this.tongueTimer = 100;
+
+        EventEmitter.events.trigger('frogEatBug', this.entity, bug);
 
     }
 
@@ -171,6 +181,26 @@ class FrogComponent extends ECS.Component {
 
     }
 
+    /**
+     *
+     * @param {ECS.Entity} bug
+     * @returns {boolean}
+     */
+    isBugValidTarget(bug) {
+
+        const bugComponent = bug.getComponent(BugComponent);
+
+        // invalid if bug is being eaten by a frog
+        if (bugComponent.eatenBy) {
+
+            return false;
+
+        }
+
+        return true;
+
+    }
+
     update(delta) {
 
         if (this.state === 'attacking') {
@@ -179,7 +209,7 @@ class FrogComponent extends ECS.Component {
 
                 const targets = this.getTargetBugs(this.bugs.filter((bug) => {
 
-                    return !bug.destroyed;
+                    return !bug.destroyed && this.isBugValidTarget(bug);
 
                 }));
 

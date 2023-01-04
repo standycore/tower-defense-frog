@@ -66,6 +66,8 @@ class BugComponent extends ECS.Component {
 
         this.damageIndicatorTimer = 0;
 
+        this.eatenBy = undefined;
+
     }
 
     damage(amount) {
