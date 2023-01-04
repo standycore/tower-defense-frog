@@ -2,3 +2,19 @@ button {
     width: 10rem;
     height: 10rem;
 }
+
+.title {
+    font-size: 1.25rem;
+    margin-bottom: .5rem;
+}
+
+.thumbnail {
+    margin-bottom: .5rem;
+}
+
+.price {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

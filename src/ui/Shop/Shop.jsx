@@ -11,7 +11,7 @@ export default function Shop({ name }) {
     if (!initialized) {
 
         // console.log('shop setting up events');
-        EventEmitter.events.on('shopSetItem', ({ id, name, price, unlocked, callback }) => {
+        EventEmitter.events.on('shopSetItem', ({ id, name, price, thumbnail, unlocked, callback }) => {
 
             if (id === undefined) {
 
@@ -23,6 +23,7 @@ export default function Shop({ name }) {
                 id,
                 name: name || itemData.name || '',
                 price: price || itemData.price || 0,
+                thumbnail,
                 unlocked: unlocked !== undefined ? unlocked : itemData.unlocked || false,
                 callback: callback || itemData.callback
             });

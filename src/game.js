@@ -259,12 +259,13 @@ async function preUpdate() {
 
         };
 
-        Object.entries(frogTypes).forEach(([id, { name, price }]) => {
+        Object.entries(frogTypes).forEach(([id, { name, price, thumbnail, assetSource }]) => {
 
             EventEmitter.events.trigger('shopSetItem', {
                 id,
                 name,
                 price,
+                thumbnail,
                 callback: handleClick
             });
 
