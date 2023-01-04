@@ -236,6 +236,16 @@ async function preUpdate() {
 
         console.log('setting up shop');
 
+        EventEmitter.events.trigger('shopSetItem', {
+            id: 'lilypad',
+            name: 'Lilypad',
+            price: 20,
+            thumbnail: '',
+            callback: () => {
+
+            }
+        });
+
         const handleClick = (itemData) => {
 
             if (currentFrog) {
@@ -408,7 +418,17 @@ function update(delta, time) {
             currentFrog.active = true;
 
             // draws a "permanent" light black circle around the frog indicating its bug eating range
-            graphics.beginFill(0x000000, 0.1);
+            // if the frog is a plague frog, draws a purple circle instead indicating the poison range
+            if (currentFrog.getComponent(PlagueFrogComponent)) {
+
+                graphics.beginFill(0xFF00FF, 0.1);
+
+            } else {
+
+                graphics.beginFill(0x000000, 0.1);
+
+            }
+
             graphics.drawCircle(frogCanvasPosition.x,
                 frogCanvasPosition.y,
                 frogComponent.range * world.cellSize.y);
