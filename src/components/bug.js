@@ -35,7 +35,8 @@ class BugComponent extends ECS.Component {
 
         });
 
-        this.entity.addComponent(WorldComponent, world).position.set(
+        this.worldComponent = this.entity.addComponent(WorldComponent, world);
+        this.worldComponent.position.set(
             pathArray[0].x,
             pathArray[0].y
         );
@@ -57,6 +58,35 @@ class BugComponent extends ECS.Component {
             EventEmitter.events.trigger('bugReachedEnd', this.entity);
 
         });
+
+        this.damageIndicatorTimer = 0;
+
+    }
+
+    damage(amount) {
+
+        this.healthComponent.health -= amount;
+        this.damageIndicatorTimer = 100;
+
+    }
+
+    update(delta, time) {
+
+        if (this.damageIndicatorTimer > 0) {
+
+            this.sprite.tint = 0xFF9999;
+            this.damageIndicatorTimer -= delta;
+
+        } else {
+
+            this.sprite.tint = 0xFFFFFF;
+            this.damageIndicatorTimer = 0;
+
+        }
+
+        const offset = Math.sin(time * 0.05) * 10 * Math.min(1, this.damageIndicatorTimer / 100);
+        this.worldComponent.offset.x = offset;
+        this.worldComponent.offset.y = offset;
 
     }
 
