@@ -17,6 +17,7 @@ async function load() {
 
 }
 
+/** @type {import('$/world').World} */
 let world;
 let pathArray;
 let level;
