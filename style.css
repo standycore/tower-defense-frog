@@ -21,6 +21,5 @@ body {
 }
 
 .ui-container #root * {
-    pointer-events: all;
     user-select: none;
 }
