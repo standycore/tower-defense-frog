@@ -51,7 +51,7 @@ const frogTypes = {
         assetSource: 'frogSheet',
         attackInterval: 1000,
         baseEatDuration: 2000, // how long it takes to chew food
-        cellOffsets: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }],
+        // cellOffsets: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }],
         strength: 1,
         range: 4
     },
@@ -64,6 +64,16 @@ const frogTypes = {
         baseEatDuration: 2000,
         strength: 0.75,
         range: 3
+    },
+    'plague-frog': {
+        id: 'plague-frog',
+        name: 'Plague Froggy',
+        price: 140,
+        assetSource: 'plagueFrogSheet',
+        attackInterval: 500,
+        baseEatDuration: 2000,
+        strength: 0.25,
+        range: 2
     }
 };
 
