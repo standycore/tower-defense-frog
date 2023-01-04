@@ -228,6 +228,14 @@ class FrogComponent extends ECS.Component {
 
     }
 
+    onDestroy() {
+
+        this.events.clear();
+        this.tongueTip.destroy();
+        this.tongue.destroy();
+
+    }
+
 }
 
 FrogComponent.register();
