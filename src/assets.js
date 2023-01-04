@@ -52,6 +52,13 @@ async function loadAssets() {
     );
     await Assets.load('heart');
 
+    // Asset for the cell highlight
+    Assets.add(
+        'cellHighlight',
+        './assets/cell-highlight.png'
+    );
+    await Assets.load('cellHighlight');
+
     // generated circle asset
     // here i am testing using a sprite as a circle
     // it draws a circle using graphics then renders it onto a texture
