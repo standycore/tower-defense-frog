@@ -23,6 +23,14 @@ async function loadAssets() {
     );
     await Assets.load('fastFrogSheet');
 
+    // Assets for the plague frog
+    Assets.add(
+        'plagueFrogSheet',
+        './assets/plague-frog-sheet.json'
+
+    );
+    await Assets.load('plagueFrogSheet');
+
     // Assets for the fly
     Assets.add(
         'flySheet',

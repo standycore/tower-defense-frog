@@ -38,6 +38,13 @@ class Frog extends ECS.Entity {
             strength = 0.75;
             range = 3;
 
+        } else if (type === 'plague-frog') {
+
+            sprite = new CustomSprite(Assets.get('plagueFrogSheet'));
+            eatInterval = 1000;
+            strength = 0.5;
+            range = 2;
+
         }
 
         // creates the sprite and starts the animation

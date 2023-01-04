@@ -214,6 +214,34 @@ async function preUpdate() {
 
         });
 
+        EventEmitter.events.trigger('shopSetItem', {
+            id: 'plague-frog',
+            name: 'Plague Froggy',
+            price: 140,
+            callback: (itemData) => {
+
+                if (currentFrog) {
+
+                    currentFrog.destroy();
+                    const type = currentFrog.type;
+                    currentFrog = null;
+
+                    if (type === itemData.id) {
+
+                        return;
+
+                    }
+
+                }
+
+                const frog = new Frog(world, itemData.id);
+                currentFrog = frog;
+                currentPrice = itemData.price;
+
+            }
+
+        });
+
     });
 
 }
