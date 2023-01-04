@@ -11,6 +11,7 @@ import { Global } from './global';
 import { Input } from './input';
 import { BugComponent } from './components/bug';
 import { PlagueFrogComponent } from './components/plagueFrog';
+import { LilypadComponent } from './components/lilypad';
 
 async function load() {
 
@@ -85,8 +86,11 @@ let cellHighlights;
 let spawnTimer;
 let spawnInterval;
 
-let currentFrog;
-let currentPrice;
+// let currentFrog;
+/** @type {ECS.Entity} */
+let currentEntity;
+// let currentPrice;
+let currentShopItemData;
 
 let graphics;
 let liveGraphics;
@@ -132,6 +136,14 @@ function createBug(id) {
     const bug = ECS.createEntity();
     bug.addComponent(BugComponent, world, pathArray, bugTypes[id]);
     return bug;
+
+}
+
+function createLilypad() {
+
+    const lilypad = ECS.createEntity();
+    lilypad.addComponent(LilypadComponent, world);
+    return lilypad;
 
 }
 
@@ -223,8 +235,12 @@ async function preUpdate() {
 
     });
 
-    // adds money on bug death
     EventEmitter.events.on('bugDied', (bug) => {
+
+    });
+
+    // adds money on bug eaten by frog
+    EventEmitter.events.on('frogEatBug', (frog, bug) => {
 
         money += bug.getComponent(BugComponent).worth;
         EventEmitter.events.trigger('uiSetMoney', money);
@@ -236,47 +252,59 @@ async function preUpdate() {
 
         console.log('setting up shop');
 
-        EventEmitter.events.trigger('shopSetItem', {
-            id: 'lilypad',
-            name: 'Lilypad',
-            price: 20,
-            thumbnail: '',
-            callback: () => {
+        const handleItemClick = (itemData) => {
 
-            }
-        });
+            if (currentEntity) {
 
-        const handleClick = (itemData) => {
+                currentEntity.destroy();
+                currentEntity = undefined;
 
-            if (currentFrog) {
+                if (currentShopItemData.id === itemData.id) {
 
-                const id = currentFrog.getComponent(FrogComponent).id;
-                currentFrog.destroy();
-                currentFrog = null;
-
-                if (id === itemData.id) {
-
+                    currentShopItemData = undefined;
                     return;
 
                 }
 
             }
 
-            const frog = createFrog(itemData.id);// new Frog(world, itemData.id);
-            frog.active = false;
-            currentFrog = frog;
-            currentPrice = itemData.price;
+            currentShopItemData = itemData;
+
+            switch (itemData.id) {
+
+                case 'lilypad':
+                    currentEntity = createLilypad();
+                    break;
+
+                default:
+                    currentEntity = createFrog(itemData.id);
+                    break;
+
+            }
+
+            currentEntity.active = false;
 
         };
 
-        Object.entries(frogTypes).forEach(([id, { name, price, thumbnail, assetSource }]) => {
+        EventEmitter.events.trigger('shopSetItem', {
+            id: 'lilypad',
+            name: 'Lilypad',
+            price: 20,
+            thumbnail: '',
+            callback: handleItemClick
+        });
+
+        Object.entries(frogTypes).forEach(([id, { name, price, thumbnail, cellOffsets }]) => {
 
             EventEmitter.events.trigger('shopSetItem', {
                 id,
                 name,
                 price,
                 thumbnail,
-                callback: handleClick
+                callback: handleItemClick,
+                data: {
+                    cellOffsets
+                }
             });
 
         });
@@ -303,11 +331,13 @@ function update(delta, time) {
 
     });
 
-    if (currentFrog && !currentFrog.destroyed) {
+    if (currentEntity && !currentEntity.destroyed) {
 
-        const frogComponent = currentFrog.getComponent(FrogComponent);
-        const frogWorldComponent = currentFrog.getComponent(WorldComponent);
-        const frogCanvasPosition = world.worldToCanvasPosition(frogWorldComponent.position);
+        // const frogWorldComponent = currentFrog.getComponent(WorldComponent);
+        // const frogCanvasPosition = world.worldToCanvasPosition(frogWorldComponent.position);
+
+        const worldComponent = currentEntity.getComponent(WorldComponent);
+        const canvasPosition = world.worldToCanvasPosition(worldComponent.position);
 
         // converts canvas position to world position
         const mouseWorldPosition = world.canvasToWorldPosition(Input.canvasMousePosition);
@@ -316,12 +346,18 @@ function update(delta, time) {
         const snappedWorldPosition = new Vector2(Math.round(mouseWorldPosition.x), Math.round(mouseWorldPosition.y));
 
         // set the floating frogs position to the snapped position
-        frogWorldComponent.position.set(snappedWorldPosition.x, snappedWorldPosition.y);
+        worldComponent.position.set(snappedWorldPosition.x, snappedWorldPosition.y);
 
         // defines a boolean validCell starting with true, and is invalidated with the following conditions
         let validCells = true;
 
-        const cellOffsets = frogTypes[frogComponent.id].cellOffsets || [{ x: 0, y: 0 }];
+        if (money < currentShopItemData.price) {
+
+            validCells = false;
+
+        }
+
+        const cellOffsets = currentShopItemData.data.cellOffsets || [{ x: 0, y: 0 }];
 
         // gets the level's grid's cell from the snapped position
         const cells = cellOffsets.map(({ x: ox, y: oy }) => {
@@ -330,121 +366,132 @@ function update(delta, time) {
 
         });
 
-        for (let i = 0; i < cellOffsets.length; i++) {
+        // only check cells if validcells is initially true
+        if (validCells) {
 
-            const cellOffset = cellOffsets[i];
-            const cellPosition = { x: snappedWorldPosition.x + cellOffset.x, y: snappedWorldPosition.y + cellOffset.y };
-            const cell = cells[i];
+            for (let i = 0; i < cellOffsets.length; i++) {
 
-            if (i > cellHighlights.length - 1) {
+                const cellOffset = cellOffsets[i];
+                const cellPosition = { x: snappedWorldPosition.x + cellOffset.x, y: snappedWorldPosition.y + cellOffset.y };
+                const cell = cells[i];
 
-                const cellHighlight = new Sprite(Assets.get('cellHighlight'));
-                cellHighlight.width = world.cellSize.x;
-                cellHighlight.height = world.cellSize.y;
-                cellHighlight.anchor.set(0.5);
-                cellHighlights.push(cellHighlight);
-                world.addChild(cellHighlight);
+                if (i > cellHighlights.length - 1) {
 
-            }
-
-            const cellHighlight = cellHighlights[i];
-            cellHighlight.visible = true;
-
-            const cellCanvasPosition = world.worldToCanvasPosition(cellPosition.x, cellPosition.y);
-            cellHighlight.position.set(cellCanvasPosition.x, cellCanvasPosition.y);
-
-            let validCell = true;
-
-            // if there is no cell, then it is not a valid cell
-            if (!cell) {
-
-                validCell = false;
-
-            } else {
-
-                // if cell has a path on it, then it is not a valid cell
-                if (cell.path) {
-
-                    validCell = false;
+                    const cellHighlight = new Sprite(Assets.get('cellHighlight'));
+                    cellHighlight.width = world.cellSize.x;
+                    cellHighlight.height = world.cellSize.y;
+                    cellHighlight.anchor.set(0.5);
+                    cellHighlights.push(cellHighlight);
+                    world.addChild(cellHighlight);
 
                 }
 
-                // if cell has a frog on it, then it is not a valid cell
-                if (cell.frog) {
+                const cellHighlight = cellHighlights[i];
+                cellHighlight.visible = true;
+
+                const cellCanvasPosition = world.worldToCanvasPosition(cellPosition.x, cellPosition.y);
+                cellHighlight.position.set(cellCanvasPosition.x, cellCanvasPosition.y);
+
+                let validCell = true;
+
+                // if there is no cell, then it is not a valid cell
+                if (!cell) {
 
                     validCell = false;
 
+                } else {
+
+                    // if cell has a path on it, then it is not a valid cell
+                    if (cell.path) {
+
+                        validCell = false;
+
+                    }
+
+                    // if cell has a frog on it, then it is not a valid cell
+                    if (cell.frog) {
+
+                        validCell = false;
+
+                    }
+
                 }
 
-                if (money < currentPrice) {
+                if (!validCell) {
 
-                    validCell = false;
+                    cellHighlight.tint = 0xFF4444;
+                    validCells = false;
+
+                } else {
+
+                    cellHighlight.tint = 0xFFFFFF;
 
                 }
-
-            }
-
-            if (!validCell) {
-
-                cellHighlight.tint = 0xFF4444;
-                validCells = false;
-
-            } else {
-
-                cellHighlight.tint = 0xFFFFFF;
 
             }
 
         }
 
-        // sets the circle color of the moving circle based on whether it is a valid cell or not
-        // valid cell? GREEN otherwise: RED
-        const circleColor = validCells ? 0x44FF44 : 0xFF4444;
+        // frog related things only so, check for frog component
+        const frogComponent = currentEntity.getComponent(FrogComponent);
 
-        liveGraphics.beginFill(circleColor, 0.2);
-        liveGraphics.drawCircle(
-            frogCanvasPosition.x,
-            frogCanvasPosition.y,
-            frogComponent.range * world.cellSize.y);
-        liveGraphics.endFill();
+        if (frogComponent) {
+
+            // sets the circle color of the moving circle based on whether it is a valid cell or not
+            // valid cell? GREEN otherwise: RED
+            const circleColor = validCells ? 0x44FF44 : 0xFF4444;
+
+            liveGraphics.beginFill(circleColor, 0.2);
+            liveGraphics.drawCircle(
+                canvasPosition.x,
+                canvasPosition.y,
+                frogComponent.range * world.cellSize.y);
+            liveGraphics.endFill();
+
+        }
 
         // when clicked, only if the cell is valid will the frog be placed
         if (Input.justClicked() && validCells) {
 
-            // pushes the currentFrog to the entities array
-            frogs.push(currentFrog);
-
             // this allows it to start updating
-            currentFrog.active = true;
+            currentEntity.active = true;
 
-            // draws a "permanent" light black circle around the frog indicating its bug eating range
-            // if the frog is a plague frog, draws a purple circle instead indicating the poison range
-            if (currentFrog.getComponent(PlagueFrogComponent)) {
+            // check again if frog
+            if (frogComponent) {
 
-                graphics.beginFill(0xFF00FF, 0.1);
+                // pushes the currentFrog to the entities array
+                frogs.push(currentEntity);
 
-            } else {
+                // draws a "permanent" light black circle around the frog indicating its bug eating range
+                // if the frog is a plague frog, draws a purple circle instead indicating the poison range
+                if (currentEntity.getComponent(PlagueFrogComponent)) {
 
-                graphics.beginFill(0x000000, 0.1);
+                    graphics.beginFill(0xFF00FF, 0.1);
 
-            }
+                } else {
 
-            graphics.drawCircle(frogCanvasPosition.x,
-                frogCanvasPosition.y,
-                frogComponent.range * world.cellSize.y);
-            graphics.endFill();
+                    graphics.beginFill(0x000000, 0.1);
 
-            // stores the frog in the cell to be accessed and checked against via positions
-            for (const cell of cells) {
+                }
 
-                cell.frog = currentFrog;
+                graphics.drawCircle(canvasPosition.x,
+                    canvasPosition.y,
+                    frogComponent.range * world.cellSize.y);
+                graphics.endFill();
+
+                // stores the frog in the cell to be accessed and checked against via positions
+                for (const cell of cells) {
+
+                    cell.frog = currentEntity;
+
+                }
 
             }
 
             // make currentFrog null to clear the mouse selection
-            currentFrog = null;
+            currentEntity = null;
 
-            money -= currentPrice;
+            money -= currentShopItemData.price;
             EventEmitter.events.trigger('uiSetMoney', money);
 
         }
