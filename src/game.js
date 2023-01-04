@@ -10,6 +10,7 @@ import { PathFollowerComponent } from './components/pathFollower';
 import { Global } from './global';
 import { Input } from './input';
 import { BugComponent } from './components/bug';
+import { PlagueFrogComponent } from './components/plagueFrog';
 
 async function load() {
 
@@ -70,6 +71,7 @@ const frogTypes = {
         name: 'Plague Froggy',
         price: 140,
         assetSource: 'plagueFrogSheet',
+        component: PlagueFrogComponent,
         attackInterval: 500,
         baseEatDuration: 2000,
         strength: 0.25,
@@ -109,7 +111,7 @@ function createFrog(id) {
     }
 
     const frog = ECS.createEntity();
-    frog.addComponent(FrogComponent, world, bugs, frogTypes[id]);
+    frog.addComponent(frogTypes[id].component || FrogComponent, world, bugs, frogTypes[id]);
     return frog;
 
 }
@@ -145,7 +147,7 @@ async function preUpdate() {
     pathArray = Global.level.pathArray;
     level = Global.level;
     lives = 25;
-    money = 100;
+    money = 1000;
     spawnInterval = 2500;
     spawnTimer = 2500;
     bugCount = 6;
@@ -448,8 +450,6 @@ function update(delta, time) {
     // timer to spawn bugs
     if (spawnTimer >= spawnInterval) {
 
-        console.log(spawnInterval);
-        console.log(bugCount);
         spawnTimer -= spawnInterval;
 
         const bugTypeIds = Object.keys(bugTypes);
