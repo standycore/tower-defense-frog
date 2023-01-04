@@ -6,6 +6,10 @@ class HealthComponent extends ECS.Component {
     preUpdate(health) {
 
         this.health = health;
+        this.triggerOnce = true;
+        this.dead = false;
+        this.destroyOnDeath = true;
+        this.events = new EventEmitter();
 
     }
 
@@ -13,8 +17,29 @@ class HealthComponent extends ECS.Component {
 
         if (this.health <= 0) {
 
-            this.entity.destroy();
-            EventEmitter.events.trigger('bugDied', this.entity);
+            if (this.triggerOnce && !this.dead) {
+
+                this.events.trigger('death', this);
+
+            }
+
+            if (!this.triggerOnce) {
+
+                this.events.trigger('death', this);
+
+            }
+
+            this.dead = true;
+
+            if (this.destroyOnDeath) {
+
+                this.entity.destroy();
+
+            }
+
+        } else {
+
+            this.dead = false;
 
         }
 

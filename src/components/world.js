@@ -14,9 +14,9 @@ class WorldComponent extends ECS.Component {
 
             if (this.sprite) {
 
+                const worldPosition = this.world.worldToCanvasPosition(this.position);
                 this.sprite.position.set(
-                    this.position.x * this.world.cellSize.x,
-                    this.position.y * this.world.cellSize.y
+                    worldPosition.x, worldPosition.y
                 );
 
             }

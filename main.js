@@ -25,6 +25,8 @@ async function main() {
     // and the root stage PIXI.Container
     const app = new Application({ resizeTo: window });
 
+    Global.app = app;
+
     // The application will create a canvas element for you that you
     // can then insert into the DOM
     document.querySelector('.canvas-container').appendChild(app.view);
@@ -247,7 +249,6 @@ async function main() {
 
         Global.level = level;
         Global.world = world;
-        Global.app = app;
 
         // path.clear();
 
