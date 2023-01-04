@@ -10,13 +10,15 @@ class WorldComponent extends ECS.Component {
 
         this.sprite = sprite || this.entity.getComponent(SpriteComponent)?.sprite;
 
+        this.offset = { x: 0, y: 0 };
+
         this.position = new ObservablePoint(() => {
 
             if (this.sprite) {
 
                 const worldPosition = this.world.worldToCanvasPosition(this.position);
                 this.sprite.position.set(
-                    worldPosition.x, worldPosition.y
+                    worldPosition.x + this.offset.x, worldPosition.y + this.offset.y
                 );
 
             }
