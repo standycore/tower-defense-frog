@@ -85,7 +85,7 @@ class FrogComponent extends ECS.Component {
             const bug = bugs[i];
             const bugComponent = bug.getComponent(BugComponent);
 
-            if (bug.destroyed || bugComponent.state !== 'alive') {
+            if (bug.destroyed || (bugComponent.state !== 'alive' && bugComponent.state !== 'dying')) {
 
                 continue;
 
@@ -152,7 +152,7 @@ class FrogComponent extends ECS.Component {
         this.tongueTip.position.set(this.tongueTipStart.x, this.tongueTipStart.y);
         this.tongueTimer = 200;
 
-        bugComponent.healthComponent.health -= this.strength;
+        bugComponent.damage(this.strength);
 
         if (bugComponent.healthComponent.health <= 0) {
 
@@ -177,7 +177,11 @@ class FrogComponent extends ECS.Component {
 
             if (this.attackTimer >= this.attackInterval) {
 
-                const targets = this.getTargetBugs(this.bugs);
+                const targets = this.getTargetBugs(this.bugs.filter((bug) => {
+
+                    return !bug.destroyed;
+
+                }));
 
                 this.onAttackAll(targets);
 
