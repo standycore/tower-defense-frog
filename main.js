@@ -51,6 +51,7 @@ async function main() {
         object.zOrder = -object.y;
 
     });
+    groupMap.create('debug', 2);
 
     // creates a layer for each group, and adds the layer to the stage
     // this is necessary for objects using the group render method to be visible
@@ -247,7 +248,9 @@ async function main() {
 
         });
 
+        /** @type {Object} */
         Global.level = level;
+        /** @type {World} */
         Global.world = world;
 
         // path.clear();
