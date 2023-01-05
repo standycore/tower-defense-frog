@@ -98,7 +98,14 @@ async function loadAssets() {
     BitmapFont.from('Arial', {
         fontFamily: 'Arial',
         fontSize: 16,
-        strokeThickness: 2,
+        strokeThickness: 4,
+        fill: 'white'
+    });
+
+    BitmapFont.from('Gaegu', {
+        fontFamily: 'Gaegu',
+        fontSize: 16,
+        strokeThickness: 4,
         fill: 'white'
     });
 
