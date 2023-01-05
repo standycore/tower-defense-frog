@@ -1,7 +1,9 @@
 import { ECS } from '$/ecs';
 import { EventEmitter } from '$/events';
+import { GroupMap } from '$/groupMap';
 import { Vector2 } from '$/vector';
 import { Assets, Sprite, Texture } from 'pixi.js';
+import { Global } from 'src/global';
 import { BugComponent } from './bug';
 import { CustomSpriteComponent } from './customSprite';
 import { LabelComponent } from './label';
@@ -70,7 +72,9 @@ class FrogComponent extends ECS.Component {
         this.worldComponent = this.entity.addComponent(WorldComponent, world);
 
         // debug label
-        this.label = this.entity.addComponent(LabelComponent, world, 'frog', { target: this.entity.getComponent(CustomSpriteComponent).sprite.position });
+        this.label = this.entity.addComponent(LabelComponent, world, 'frog', { target: this.entity.getComponent(CustomSpriteComponent).sprite.position, size: 10 });
+        this.label.bitmapText.parentGroup = GroupMap.groupMap.get('debug');
+        this.label.bitmapText.visible = false;
 
     }
 
@@ -308,7 +312,16 @@ class FrogComponent extends ECS.Component {
 
         if (this.label) {
 
-            this.label.text = this.state;
+            if (Global.public.debug) {
+
+                this.label.text = this.state;
+                this.label.bitmapText.visible = true;
+
+            } else {
+
+                this.label.bitmapText.visible = false;
+
+            }
 
         }
 
