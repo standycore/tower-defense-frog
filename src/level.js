@@ -171,12 +171,15 @@ async function generateLevel(world, pathGraphics) {
         let cell = levelGrid.get(x, y);
         if (!cell) {
 
-            cell = {};
+            cell = {
+                x, y, stack: []
+            };
             levelGrid.set(x, y, cell);
 
         }
 
         cell.background = value;
+        cell.stack.push(value);
 
         // debug draw the world onto graphics
         // const startX = (x * world.cellSize.x) - (world.cellSize.x / 2);

@@ -291,10 +291,42 @@ async function preUpdate() {
             name: 'Lilypad',
             price: 20,
             thumbnail: '',
-            callback: handleItemClick
+            callback: handleItemClick,
+            data: {
+                cellFilter: (cell) => {
+
+                    // if cell has a path on it, then it is not a valid cell
+                    if (cell.path) {
+
+                        return false;
+
+                    }
+
+                    // if cell is not water, invalid
+                    if (cell.stack[0] !== 'w') {
+
+                        return false;
+
+                    }
+
+                    // if cell already has lilypad, invalid
+                    if (cell.stack.find((e) => {
+
+                        return e instanceof ECS.Entity && e.getComponent(LilypadComponent);
+
+                    })) {
+
+                        return false;
+
+                    }
+
+                    return true;
+
+                }
+            }
         });
 
-        Object.entries(frogTypes).forEach(([id, { name, price, thumbnail, cellOffsets }]) => {
+        Object.entries(frogTypes).forEach(([id, { name, price, thumbnail, cellOffsets, cellFilter }]) => {
 
             EventEmitter.events.trigger('shopSetItem', {
                 id,
@@ -303,7 +335,42 @@ async function preUpdate() {
                 thumbnail,
                 callback: handleItemClick,
                 data: {
-                    cellOffsets
+                    cellOffsets,
+                    cellFilter: cellFilter || ((cell) => {
+
+                        // if cell has a path on it, then it is not a valid cell
+                        if (cell.path) {
+
+                            return false;
+
+                        }
+
+                        // if cell is water
+                        if (cell.stack[0] === 'w') {
+
+                            // if cell doesnt have lilypad, invalid
+                            if (!cell.stack[1] || !cell.stack[1].getComponent(LilypadComponent)) {
+
+                                return false;
+
+                            }
+
+                        }
+
+                        // if cell has a frog on it, then it is not a valid cell
+                        if (cell.stack.find((e) => {
+
+                            return e instanceof ECS.Entity && e.getComponent(FrogComponent);
+
+                        })) {
+
+                            return false;
+
+                        }
+
+                        return true;
+
+                    })
                 }
             });
 
@@ -360,6 +427,7 @@ function update(delta, time) {
         const cellOffsets = currentShopItemData.data.cellOffsets || [{ x: 0, y: 0 }];
 
         // gets the level's grid's cell from the snapped position
+        /** @type {Array<{x: float, y: float, stack: Array, data: Object}>} */
         const cells = cellOffsets.map(({ x: ox, y: oy }) => {
 
             return level.grid.get(snappedWorldPosition.x + ox, snappedWorldPosition.y + oy);
@@ -401,17 +469,13 @@ function update(delta, time) {
 
                 } else {
 
-                    // if cell has a path on it, then it is not a valid cell
-                    if (cell.path) {
+                    if (currentShopItemData.data.cellFilter) {
 
-                        validCell = false;
+                        if (!currentShopItemData.data.cellFilter(cell)) {
 
-                    }
+                            validCell = false;
 
-                    // if cell has a frog on it, then it is not a valid cell
-                    if (cell.frog) {
-
-                        validCell = false;
+                        }
 
                     }
 
@@ -479,20 +543,28 @@ function update(delta, time) {
                     frogComponent.range * world.cellSize.y);
                 graphics.endFill();
 
-                // stores the frog in the cell to be accessed and checked against via positions
-                for (const cell of cells) {
+                // // stores the frog in the cell to be accessed and checked against via positions
+                // for (const cell of cells) {
 
-                    cell.frog = currentEntity;
+                //     cell.frog = currentEntity;
 
-                }
+                // }
 
             }
 
-            // make currentFrog null to clear the mouse selection
-            currentEntity = null;
+            // stores the entity in the cell to be accessed and checked against via positions
+            for (const cell of cells) {
+
+                cell.stack.push(currentEntity);
+
+            }
 
             money -= currentShopItemData.price;
             EventEmitter.events.trigger('uiSetMoney', money);
+
+            // make currentFrog null to clear the mouse selection
+            currentEntity = null;
+            currentShopItemData = undefined;
 
         }
 
