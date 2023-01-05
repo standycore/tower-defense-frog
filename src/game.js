@@ -1,4 +1,4 @@
-import { ECS } from '$/ecs';
+import { ECS, Entity } from '$/ecs';
 import { EventEmitter } from '$/events';
 import { Vector2 } from '$/vector';
 import { Assets, Graphics, Sprite } from 'pixi.js';
@@ -19,25 +19,49 @@ async function load() {
 
 }
 
+/**
+ * @typedef gridCell
+ * @type {Object}
+ * @property {float} x
+ * @property {float} y
+ * @property {Array<any>} stack
+ * @property {Object} data
+ */
+
 /** @type {import('$/world').World} */
 let world;
 let pathArray;
 let level;
 
+/**
+ * @typedef bugType
+ * @type {Object}
+ * @property {string} id
+ * @property {float} health health of the bug
+ * @property {float} speed speed the bug travels, in world units per second
+ * @property {float} worth amount of money earned by eating bug
+ * @property {string} assetSource asset name of the spritesheet
+ * @property {new() => Component} component
+*/
+
+/** @type {Object<string, bugType} */
 const bugTypes = {
     fly: {
+        id: 'fly',
         health: 1,
         speed: 2,
         worth: 10,
         assetSource: 'flySheet'
     },
     spider: {
+        id: 'spider',
         health: 5,
         speed: 1,
         worth: 30,
         assetSource: 'spiderSheet'
     },
     butterfly: {
+        id: 'butterfly',
         health: 3,
         speed: 3,
         worth: 20,
@@ -45,6 +69,23 @@ const bugTypes = {
     }
 };
 
+/**
+ * @typedef frogType
+ * @type {Object}
+ * @property {string} id
+ * @property {string} name
+ * @property {float} price
+ * @property {boolean} unlocked
+ * @property {string} assetSource
+ * @property {float} attackInterval
+ * @property {float} baseEatDuration
+ * @property {float} strength
+ * @property {float} range
+ * @property {new() => Component} component
+ * @property {Array<{x: float, y: float}>} cellOffsets
+*/
+
+/** @type {Object<string, frogType>} */
 const frogTypes = {
     frog: {
         id: 'frog',
@@ -83,28 +124,36 @@ const frogTypes = {
 /** @type {Array<Sprite>} */
 let cellHighlights;
 
+/** @type {float} */
 let spawnTimer;
+/** @type {float} */
 let spawnInterval;
 
-// let currentFrog;
-/** @type {ECS.Entity} */
+/** @type {Entity} */
 let currentEntity;
-// let currentPrice;
+
 let currentShopItemData;
 
+/** @type {Graphics} */
 let graphics;
+/** @type {Graphics} */
 let liveGraphics;
+/** @type {float} */
 let lives;
+/** @type {float} */
 let money;
 
+/** @type {int} */
 let bugCount;
+/** @type {Array<Entity>} */
 let bugs;
+/** @type {Array<Entity>} */
 let frogs;
 
 /**
  * creates a frog based on the id
  * @param {string} id the type of frog
- * @returns {ECS.Entity} frog entity
+ * @returns {Entity} frog entity
  */
 function createFrog(id) {
 
@@ -123,7 +172,7 @@ function createFrog(id) {
 /**
  * creates a bug based on the id
  * @param {string} id the type of bug
- * @returns {ECS.Entity} bug entity
+ * @returns {Entity} bug entity
  */
 function createBug(id) {
 
@@ -312,7 +361,7 @@ async function preUpdate() {
                     // if cell already has lilypad, invalid
                     if (cell.stack.find((e) => {
 
-                        return e instanceof ECS.Entity && e.getComponent(LilypadComponent);
+                        return e instanceof Entity && e.getComponent(LilypadComponent);
 
                     })) {
 
@@ -360,7 +409,7 @@ async function preUpdate() {
                         // if cell has a frog on it, then it is not a valid cell
                         if (cell.stack.find((e) => {
 
-                            return e instanceof ECS.Entity && e.getComponent(FrogComponent);
+                            return e instanceof Entity && e.getComponent(FrogComponent);
 
                         })) {
 
@@ -427,7 +476,7 @@ function update(delta, time) {
         const cellOffsets = currentShopItemData.data.cellOffsets || [{ x: 0, y: 0 }];
 
         // gets the level's grid's cell from the snapped position
-        /** @type {Array<{x: float, y: float, stack: Array, data: Object}>} */
+        /** @type {Array<gridCell>} */
         const cells = cellOffsets.map(({ x: ox, y: oy }) => {
 
             return level.grid.get(snappedWorldPosition.x + ox, snappedWorldPosition.y + oy);
@@ -543,13 +592,6 @@ function update(delta, time) {
                     frogComponent.range * world.cellSize.y);
                 graphics.endFill();
 
-                // // stores the frog in the cell to be accessed and checked against via positions
-                // for (const cell of cells) {
-
-                //     cell.frog = currentEntity;
-
-                // }
-
             }
 
             // stores the entity in the cell to be accessed and checked against via positions
@@ -614,30 +656,6 @@ function update(delta, time) {
     }
 
     spawnTimer += delta;
-
-    // frog targeting debug
-
-    // sets line style to draw red lines
-    // this is for the debugging of frogs to see which bug they are targeting (below)
-    // liveGraphics.lineStyle(2, 0xFF0000, 1);
-
-    // frogs.forEach((frog) => {
-
-    //     const closestBug = frog.getComponent(FrogComponent).getClosestBug(bugs);
-
-    //     if (!closestBug) {
-
-    //         return;
-
-    //     }
-
-    //     const a = world.worldToCanvasPosition(frog.getComponent(WorldComponent).position);
-    //     liveGraphics.moveTo(a.x, a.y);
-
-    //     const b = world.worldToCanvasPosition(closestBug.getComponent(WorldComponent).position);
-    //     liveGraphics.lineTo(b.x, b.y);
-
-    // });
 
 }
 

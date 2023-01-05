@@ -3,12 +3,18 @@ import { BitmapText } from 'pixi.js';
 
 class LabelComponent extends ECS.Component {
 
+    /**
+     * @param {string} t
+     */
     set text(t) {
 
         this.bitmapText.text = t;
 
     }
 
+    /**
+     * @returns {string}
+     */
     get text() {
 
         return this.bitmapText.text;
@@ -17,8 +23,10 @@ class LabelComponent extends ECS.Component {
 
     preUpdate(container, text, options = {}) {
 
+        /** @type {BitmapText} */
         this.bitmapText = new BitmapText('text', {
-            fontName: options.fontName || 'Arial'
+            fontName: options.fontName || 'Arial',
+            fontSize: options.fontSize
         });
 
         container.addChild(this.bitmapText);

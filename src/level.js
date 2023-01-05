@@ -2,7 +2,7 @@ import { Grid } from '$/grid';
 import { PathGenerator } from '$/pathGenerator';
 import { WaveFunctionCollapser } from '$/wfc';
 
-async function generateLevel(world, pathGraphics) {
+async function generateLevel() {
 
     const wfc = new WaveFunctionCollapser();
 
@@ -181,17 +181,7 @@ async function generateLevel(world, pathGraphics) {
         cell.background = value;
         cell.stack.push(value);
 
-        // debug draw the world onto graphics
-        // const startX = (x * world.cellSize.x) - (world.cellSize.x / 2);
-        // const startY = (y * world.cellSize.y) - (world.cellSize.y / 2);
-
-        // pathGraphics.beginFill(valueColorMap[value] || 0xFFFFFF);
-        // pathGraphics.drawRect(startX, startY, world.cellSize.x, world.cellSize.y);
-        // pathGraphics.endFill();
-
     });
-
-    pathGraphics.clear();
 
     await wfc.collapse();
 
