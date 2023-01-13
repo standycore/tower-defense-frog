@@ -208,7 +208,7 @@ async function preUpdate() {
     pathArray = Global.level.pathArray;
     level = Global.level;
     lives = 25;
-    money = 1000;
+    money = 120;
     spawnInterval = 2500;
     spawnTimer = 2500;
     bugCount = 6;
