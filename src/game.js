@@ -268,6 +268,7 @@ async function preUpdate() {
 
     });
 
+    // Spawns new waves of bugs
     EventEmitter.events.on('newWaveSpawn', () => {
 
         // const bugCounts = {};
