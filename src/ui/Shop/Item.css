@@ -1,18 +1,18 @@
-button {
+.shop-item {
     width: 10rem;
     height: 10rem;
 }
 
-.title {
+.shop-item .title {
     font-size: 1.25rem;
     margin-bottom: .5rem;
 }
 
-.thumbnail {
+.shop-item .thumbnail {
     margin-bottom: .5rem;
 }
 
-.price {
+.shop-item .price {
     font-size: 1.5rem;
     display: flex;
     align-items: center;

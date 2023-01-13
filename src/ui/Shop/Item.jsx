@@ -13,7 +13,7 @@ export default function Item({ name, price, thumbnail, onClick }) {
     }
 
     return (
-        <button onClick={handleClick}>
+        <button className="shop-item" onClick={handleClick}>
             <div className="title">
                 {name}
             </div>
