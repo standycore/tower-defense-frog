@@ -1,0 +1,16 @@
+.wave {
+    pointer-events: all;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    font-size: 3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: .25em .5em;
+    margin: .25em
+}
+
+.display-none {
+    display: none
+}
