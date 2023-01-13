@@ -152,6 +152,8 @@ let bugCount;
 let bugs;
 /** @type {Array<Entity>} */
 let frogs;
+/** @type {Array<string>} */
+let spawnArray;
 
 /**
  * creates a frog based on the id
@@ -271,9 +273,10 @@ async function preUpdate() {
     // Spawns new waves of bugs
     EventEmitter.events.on('newWaveSpawn', () => {
 
+        console.log(bugCount);
         // const bugCounts = {};
         let cumulativeWeight = 0;
-        const spawnArray = [];
+        spawnArray = [];
 
         Object.entries(bugTypes).forEach(([id, bugType]) => {
 
@@ -294,6 +297,8 @@ async function preUpdate() {
         });
 
     });
+
+    EventEmitter.events.trigger('newWaveSpawn');
 
     // lowers lives if a bug passes through
     EventEmitter.events.on('bugReachedEnd', (bug) => {
@@ -666,39 +671,17 @@ function update(delta, time) {
 
     }
 
-    /**
-
-    // timer to spawn bugs
+    // Spawns bugs from spawnArray
     if (spawnTimer >= spawnInterval) {
 
         spawnTimer -= spawnInterval;
 
-        const bugTypeIds = Object.keys(bugTypes);
-        const randomIndex = Math.floor(Math.random() * bugTypeIds.length);
-        const bug = createBug(bugTypeIds[randomIndex]);
+        if (spawnArray.length > 0) {
 
-        bugs.push(bug);
-
-        if (bugCount <= 0 && spawnInterval > 250) {
-
-            spawnInterval -= 50;
-            bugCount = 6;
+            const bug = createBug(spawnArray.shift());
+            bugs.push(bug);
 
         }
-
-        if (bugCount > 0) {
-
-            bugCount -= 1;
-
-        }
-
-    }
-
-    */
-
-    if (spawnTimer >= spawnInterval) {
-
-        spawnTimer -= spawnInterval;
 
     }
 
