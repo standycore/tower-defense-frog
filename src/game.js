@@ -146,14 +146,49 @@ let lives;
 /** @type {float} */
 let money;
 
-/** @type {int} */
-let bugCount;
 /** @type {Array<Entity>} */
 let bugs;
 /** @type {Array<Entity>} */
 let frogs;
+
+/** @type {int} */
+let spawnCount;
 /** @type {Array<string>} */
 let spawnArray;
+
+/**
+ * possible game states
+ * @enum {int}
+ */
+const GameState = {
+    NONE: 0,
+    BREAK: 1,
+    WAVE: 2
+};
+
+/**
+ * the current state of the game
+ * @type {GameState}
+ */
+let state;
+
+/**
+ * sets the game state to a new game state. doesnt change if the state is the same
+ * @param {GameState} newState
+ */
+function setState(newState) {
+
+    if (newState === state) {
+
+        return;
+
+    }
+
+    state = newState;
+    const stateName = Object.keys(GameState).find((key) => GameState[key] === state);
+    EventEmitter.events.trigger('stateChanged', state, stateName);
+
+}
 
 /**
  * creates a frog based on the id
@@ -220,7 +255,7 @@ async function preUpdate() {
     // variables to control  bug spawn
     spawnInterval = 1000;
     spawnTimer = 1000;
-    bugCount = 6;
+    spawnCount = 6;
 
     // entities arrays
     bugs = [];
@@ -270,11 +305,9 @@ async function preUpdate() {
 
     });
 
-    // Spawns new waves of bugs
-    EventEmitter.events.on('newWaveSpawn', () => {
+    // generates new wave of bugs into spawnArray
+    EventEmitter.events.on('generateWave', () => {
 
-        console.log(bugCount);
-        // const bugCounts = {};
         let cumulativeWeight = 0;
         spawnArray = [];
 
@@ -286,7 +319,7 @@ async function preUpdate() {
 
         Object.entries(bugTypes).forEach(([id, bugType]) => {
 
-            const count = Math.floor(bugType.weight / cumulativeWeight * bugCount);
+            const count = Math.floor(bugType.weight / cumulativeWeight * spawnCount);
 
             for (let i = 0; i < count; i++) {
 
@@ -298,7 +331,12 @@ async function preUpdate() {
 
     });
 
-    EventEmitter.events.trigger('newWaveSpawn');
+    // start the wave (if not started and if generated)
+    EventEmitter.events.on('startWave', () => {
+
+        setState(GameState.WAVE);
+
+    });
 
     // lowers lives if a bug passes through
     EventEmitter.events.on('bugReachedEnd', (bug) => {
@@ -466,6 +504,35 @@ async function preUpdate() {
             });
 
         });
+
+    });
+
+    // setup actions when different states are set
+    EventEmitter.events.on('stateChanged', (state, stateName) => {
+
+        console.log('state changed to', state, stateName);
+
+        if (state === GameState.BREAK) {
+
+            // generate wave
+            EventEmitter.events.trigger('generateWave');
+
+            EventEmitter.events.trigger('uiWaveSetVisible', true);
+
+        } else if (state === GameState.WAVE) {
+
+            EventEmitter.events.trigger('uiWaveSetVisible', false);
+
+        }
+
+    });
+
+    // set the initial game state
+    setState(GameState.NONE);
+
+    EventEmitter.events.on('uiWaveReady', () => {
+
+        setState(GameState.BREAK);
 
     });
 
@@ -671,21 +738,36 @@ function update(delta, time) {
 
     }
 
-    // Spawns bugs from spawnArray
-    if (spawnTimer >= spawnInterval) {
+    if (state === GameState.WAVE) {
 
-        spawnTimer -= spawnInterval;
+        // Spawns bugs from spawnArray
+        if (spawnTimer >= spawnInterval) {
 
-        if (spawnArray.length > 0) {
+            spawnTimer -= spawnInterval;
 
-            const bug = createBug(spawnArray.shift());
-            bugs.push(bug);
+            if (spawnArray && spawnArray.length > 0) {
+
+                const bug = createBug(spawnArray.shift());
+                bugs.push(bug);
+
+            }
 
         }
 
-    }
+        spawnTimer += delta;
 
-    spawnTimer += delta;
+        if (spawnArray.length === 0 && bugs.length === 0) {
+
+            // end wave
+            setState(GameState.BREAK);
+
+        }
+
+    } else {
+
+        spawnTimer = 0;
+
+    }
 
 }
 
