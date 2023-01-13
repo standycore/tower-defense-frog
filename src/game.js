@@ -51,21 +51,24 @@ const bugTypes = {
         health: 1,
         speed: 2,
         worth: 10,
-        assetSource: 'flySheet'
+        assetSource: 'flySheet',
+        weight: 65
     },
     spider: {
         id: 'spider',
         health: 5,
         speed: 1,
         worth: 30,
-        assetSource: 'spiderSheet'
+        assetSource: 'spiderSheet',
+        weight: 10
     },
     butterfly: {
         id: 'butterfly',
         health: 3,
         speed: 3,
         worth: 20,
-        assetSource: 'butterflySheet'
+        assetSource: 'butterflySheet',
+        weight: 25
     }
 };
 
@@ -207,11 +210,17 @@ async function preUpdate() {
     world = Global.world;
     pathArray = Global.level.pathArray;
     level = Global.level;
+
+    // sets the lives and money variables
     lives = 25;
     money = 120;
-    spawnInterval = 2500;
-    spawnTimer = 2500;
+
+    // variables to control  bug spawn
+    spawnInterval = 1000;
+    spawnTimer = 1000;
     bugCount = 6;
+
+    // entities arrays
     bugs = [];
     frogs = [];
 
@@ -259,6 +268,33 @@ async function preUpdate() {
 
     });
 
+    EventEmitter.events.on('newWaveSpawn', () => {
+
+        // const bugCounts = {};
+        let cumulativeWeight = 0;
+        const spawnArray = [];
+
+        Object.entries(bugTypes).forEach(([id, bugType]) => {
+
+            cumulativeWeight += bugType.weight;
+
+        });
+
+        Object.entries(bugTypes).forEach(([id, bugType]) => {
+
+            const count = Math.floor(bugType.weight / cumulativeWeight * bugCount);
+
+            for (let i = 0; i < count; i++) {
+
+                spawnArray.push(id);
+
+            }
+
+        });
+
+    });
+
+    // lowers lives if a bug passes through
     EventEmitter.events.on('bugReachedEnd', (bug) => {
 
         lives -= bug.getComponent(HealthComponent).health;
@@ -629,6 +665,8 @@ function update(delta, time) {
 
     }
 
+    /**
+
     // timer to spawn bugs
     if (spawnTimer >= spawnInterval) {
 
@@ -652,6 +690,14 @@ function update(delta, time) {
             bugCount -= 1;
 
         }
+
+    }
+
+    */
+
+    if (spawnTimer >= spawnInterval) {
+
+        spawnTimer -= spawnInterval;
 
     }
 
