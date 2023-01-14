@@ -155,6 +155,8 @@ let frogs;
 let spawnCount;
 /** @type {Array<string>} */
 let spawnArray;
+/** @type {int} */
+let currentWave;
 
 /**
  * possible game states
@@ -256,6 +258,7 @@ async function preUpdate() {
     spawnInterval = 1000;
     spawnTimer = 1000;
     spawnCount = 6;
+    currentWave = 0;
 
     // entities arrays
     bugs = [];
@@ -310,6 +313,8 @@ async function preUpdate() {
 
         let cumulativeWeight = 0;
         spawnArray = [];
+
+        console.log(spawnCount);
 
         Object.entries(bugTypes).forEach(([id, bugType]) => {
 
@@ -514,10 +519,19 @@ async function preUpdate() {
 
         if (state === GameState.BREAK) {
 
+            if (currentWave > 0) {
+
+                spawnCount += 6;
+                EventEmitter.events.trigger('uiSetMoney', money += 60);
+
+            }
+
             // generate wave
             EventEmitter.events.trigger('generateWave');
 
             EventEmitter.events.trigger('uiWaveSetVisible', true);
+
+            currentWave++;
 
         } else if (state === GameState.WAVE) {
 
