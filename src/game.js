@@ -760,6 +760,8 @@ function update(delta, time) {
 
             // end wave
             setState(GameState.BREAK);
+            spawnCount += 8;
+            EventEmitter.events.trigger('uiSetMoney', money += 60);
 
         }
 
